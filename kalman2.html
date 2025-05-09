@@ -209,13 +209,14 @@
                 <li>The Kalman gain <strong>K</strong> that fuses model and data.</li>
             </ol>
 
-            <p class="highlight"><strong>Take‑away:</strong> The Predict Step propagates our belief forward using only the model;
-               its accuracy hinges on the quality of <em>A</em> and the chosen sample period.</p>
+            <p class="highlight"><strong>Take‑away:</strong> Neither the physical model nor the measurements alone are sufficient:
+                the model is only an approximation, and the measurements are noisy and delayed.
+                The Kalman Filter combines both sources of information — dynamics and data — to produce the best possible estimate of the system’s state.</p>
             <p style="font-size:0.8em">† Linearised around small angles for clarity; the live simulation uses the full non‑linear equations.</p>
         </section>
         
         <div class="nav-buttons">
-            <button onclick="window.location.href='pendulum-intro.html'">← Previous section</button>
+            <button onclick="window.location.href='kalman1.html'">Previous</button>
             <button id="nextButton" onclick="window.location.href='kalman-filter.html'">Next section →</button>
         </div>
     </div>
