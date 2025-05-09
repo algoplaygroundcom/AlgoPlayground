@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalman Filter – Predict Step</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Kalman Filter – Predict Step</h1>
+            <p>Understanding the prediction phase with adjustable parameters</p>
+        </div>
+        <img src="assets/img/AlgoPlayground.png"
+                 alt="AlgoPlayground logo"
+                 class="logo">
+    </header>
+
+    <div class="container">
+        <section>
+            <h2>The Predict Step</h2>
+            <p>The Kalman filter begins by <strong>predicting</strong> the next state using only the system dynamics (the physics of the pendulum). This prediction forms our best estimate before incorporating any new measurements.</p>
+            
+            <div class="math-block">
+                \[
+                \begin{aligned}
+                x_k^- &= A_d x_{k-1} \\
+                P_k^- &= A_d P_{k-1} A_d^T + Q
+                \end{aligned}
+                \]
+            </div>
+            
+            <p>Where:</p>
+            <ul>
+                <li><strong>x<sub>k</sub><sup>-</sup></strong> – predicted state (angle and angular velocity)</li>
+                <li><strong>A<sub>d</sub></strong> – discrete state transition matrix</li>
+                <li><strong>P</strong> – state covariance matrix (uncertainty)</li>
+                <li><strong>Q</strong> – process noise covariance</li>
+            </ul>
+            
+            <div class="highlight">
+                <p><strong>Key Insight:</strong> The prediction relies entirely on our model. With perfect modeling (Q=0) and known initial conditions, we wouldn't need measurements!</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Interactive Prediction Simulation</h2>
+            <p>Explore how the prediction behaves with different parameters. The <span style="color:#f05454">red</span> pendulum shows the true state, while the <span style="color:#4b8bb9">blue</span> one shows the predicted state.</p>
+            
+            <div class="simulation-container">
+                <div class="canvas-container">
+                    <canvas id="pendulumCanvas"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <div class="slider-container">
+                        <label for="dtSlider">Time step (Δt):</label>
+                        <span class="value-display" id="dtValue">0.05</span>
+                        <input type="range" id="dtSlider" min="0.01" max="0.2" step="0.01" value="0.05">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="qSlider">Process noise (Q):</label>
+                        <span class="value-display" id="qValue">0.01</span>
+                        <input type="range" id="qSlider" min="0" max="0.1" step="0.001" value="0.01">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="initErrorSlider">Initial error:</label>
+                        <span class="value-display" id="initErrorValue">0.1</span>
+                        <input type="range" id="initErrorSlider" min="0" max="0.5" step="0.01" value="0.1">
+                    </div>
+                    
+                    <div class="button-container">
+                        <button id="resetButton">Reset</button>
+                        <button id="pauseButton">Pause</button>
+                        <button id="stepButton">Step (Δt)</button>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="showPredictButton" style="background-color:#4b8bb9">Show Prediction</button>
+                        <button id="showTrueButton" style="background-color:#f05454">Show True State</button>
+                    </div>
+                    
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Angle Error</div>
+                            <div class="metric-value"><span id="angleErrorValue">0.00</span> rad</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Velocity Error</div>
+                            <div class="metric-value"><span id="velocityErrorValue">0.00</span> rad/s</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>Experiment:</strong> Try these scenarios:
+                <ol>
+                    <li>Set Q=0 and Δt small - prediction matches true state</li>
+                    <li>Increase Q - prediction diverges due to unmodeled dynamics</li>
+                    <li>Increase Δt - prediction becomes less accurate</li>
+                </ol>
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Process Noise (Q)</h2>
+            <p>Process noise accounts for imperfections in our model:</p>
+            <ul>
+                <li>Unmodeled dynamics (e.g., air resistance, nonlinearities)</li>
+                <li>External disturbances (e.g., wind, vibrations)</li>
+                <li>Discretization errors (when Δt is large)</li>
+            </ul>
+            
+            <div class="math-block">
+                \[ Q = \begin{bmatrix}
+                q_\theta & 0 \\
+                0 & q_{\dot{\theta}}
+                \end{bmatrix} \]
+            </div>
+            
+            <p>Where q<sub>θ</sub> and q<sub>θ̇</sub> represent the uncertainty in angle and angular velocity predictions. Larger Q values make the filter trust measurements more than predictions.</p>
+            
+            <div class="highlight">
+                <p><strong>Why it matters:</strong> With Q=0, any initial error persists forever. With proper Q, the filter can correct itself when measurements arrive.</p>
+            </div>
+        </section>
+        
+        <div class="nav-buttons">
+            <button onclick="window.location.href='measurement-noise.html'">← Previous: Measurement Noise</button>
+            <button onclick="window.location.href='update-step.html'">Next: Update Step →</button>
+        </div>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            });
+        });
+
+        // Physics constants
+        const g = 9.8;
+        const length = 1.0;
+        const damping = 0.02;
+        
+        // Simulation state
+        let trueTheta = 0.5;  // True initial angle (rad)
+        let trueOmega = 0;     // True angular velocity
+        let predTheta = 0.5;   // Predicted angle
+        let predOmega = 0;     // Predicted angular velocity
+        let time = 0;
+        let isPaused = true;
+        let dt = 0.05;
+        let q = 0.01;
+        let initialError = 0.1;
+        let showPrediction = true;
+        let showTrueState = true;
+        
+        // Canvas setup
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // UI Controls
+        document.getElementById('dtSlider').addEventListener('input', function() {
+            dt = parseFloat(this.value);
+            document.getElementById('dtValue').textContent = dt.toFixed(2);
+        });
+        
+        document.getElementById('qSlider').addEventListener('input', function() {
+            q = parseFloat(this.value);
+            document.getElementById('qValue').textContent = q.toFixed(3);
+        });
+        
+        document.getElementById('initErrorSlider').addEventListener('input', function() {
+            initialError = parseFloat(this.value);
+            document.getElementById('initErrorValue').textContent = initialError.toFixed(2);
+        });
+        
+        document.getElementById('resetButton').addEventListener('click', function() {
+            trueTheta = 0.5;
+            trueOmega = 0;
+            predTheta = 0.5 + initialError;
+            predOmega = 0;
+            time = 0;
+            isPaused = true;
+            document.getElementById('pauseButton').textContent = 'Start';
+        });
+        
+        document.getElementById('pauseButton').addEventListener('click', function() {
+            isPaused = !isPaused;
+            this.textContent = isPaused ? 'Start' : 'Pause';
+        });
+        
+        document.getElementById('stepButton').addEventListener('click', function() {
+            if (isPaused) {
+                updateSimulation(dt);
+                drawPendulum();
+            }
+        });
+        
+        document.getElementById('showPredictButton').addEventListener('click', function() {
+            showPrediction = !showPrediction;
+            this.style.backgroundColor = showPrediction ? '#4b8bb9' : '#414f63';
+        });
+        
+        document.getElementById('showTrueButton').addEventListener('click', function() {
+            showTrueState = !showTrueState;
+            this.style.backgroundColor = showTrueState ? '#f05454' : '#414f63';
+        });
+        
+        // Physics functions
+        function derivatives(theta, omega) {
+            return {
+                dTheta: omega,
+                dOmega: -g/length * Math.sin(theta) - damping * omega
+            };
+        }
+        
+        function rk4(theta, omega, dt) {
+            const k1 = derivatives(theta, omega);
+            const k2 = derivatives(theta + dt/2 * k1.dTheta, omega + dt/2 * k1.dOmega);
+            const k3 = derivatives(theta + dt/2 * k2.dTheta, omega + dt/2 * k2.dOmega);
+            const k4 = derivatives(theta + dt * k3.dTheta, omega + dt * k3.dOmega);
+            const noiseTheta = Math.sqrt(q) * (Math.random() - 0.5);
+            const noiseOmega = Math.sqrt(q) * (Math.random() - 0.5);
+            return {
+                theta: theta + dt * (k1.dTheta + 2*k2.dTheta + 2*k3.dTheta + k4.dTheta) / 6 + noiseTheta,
+                omega: omega + dt * (k1.dOmega + 2*k2.dOmega + 2*k3.dOmega + k4.dOmega) / 6 + noiseOmega
+            };
+        }
+        
+        // Prediction using linearized model (for Kalman filter)
+        function predictState(theta, omega, dt) {
+            // Linearized state matrix (for small angles)
+            const A = [
+                [0, 1],
+                [-g/length, -damping]
+            ];
+            
+            // Discrete-time approximation
+            const Ad = [
+                [1, dt],
+                [-g/length * dt, 1 - damping * dt]
+            ];
+            
+            // Process noise
+            
+            
+            return {
+                theta: Ad[0][0] * theta + Ad[0][1] * omega,
+                omega: Ad[1][0] * theta + Ad[1][1] * omega
+            };
+        }
+        
+        // Simulation update
+        function updateSimulation(dt) {
+            // Update true state (nonlinear physics)
+            const trueNext = rk4(trueTheta, trueOmega, dt);
+            trueTheta = trueNext.theta;
+            trueOmega = trueNext.omega;
+            
+            // Update predicted state (linear model with noise)
+            const predNext = predictState(predTheta, predOmega, dt);
+            predTheta = predNext.theta;
+            predOmega = predNext.omega;
+            
+            time += dt;
+            
+            // Update error metrics
+            document.getElementById('angleErrorValue').textContent = 
+                Math.abs(predTheta - trueTheta).toFixed(4);
+            document.getElementById('velocityErrorValue').textContent = 
+                Math.abs(predOmega - trueOmega).toFixed(4);
+        }
+        
+        // Drawing functions
+        function drawPendulum() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 3;
+            const scale = 100;
+            
+            // Draw reference line
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX, originY + scale * length);
+            ctx.strokeStyle = '#c4c9d1';
+            ctx.setLineDash([5, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw predicted pendulum (blue)
+            if (showPrediction) {
+                const predX = originX + scale * length * Math.sin(predTheta);
+                const predY = originY + scale * length * Math.cos(predTheta);
+                
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(predX, predY);
+                ctx.strokeStyle = '#4b8bb9';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(predX, predY, 12, 0, Math.PI * 2);
+                ctx.fillStyle = '#4b8bb9';
+                ctx.fill();
+            }
+            
+            // Draw true pendulum (red)
+            if (showTrueState) {
+                const trueX = originX + scale * length * Math.sin(trueTheta);
+                const trueY = originY + scale * length * Math.cos(trueTheta);
+                
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(trueX, trueY);
+                ctx.strokeStyle = '#f05454';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(trueX, trueY, 15, 0, Math.PI * 2);
+                ctx.fillStyle = '#f05454';
+                ctx.fill();
+            }
+            
+            // Draw pivot
+            ctx.beginPath();
+            ctx.arc(originX, originY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#414f63';
+            ctx.fill();
+            
+            // Display time
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#414f63';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Time: ${time.toFixed(2)}s`, canvas.width - 20, 30);
+        }
+        
+        // Animation loop
+        let lastTime = 0;
+        function animate(currentTime) {
+            if (!lastTime) lastTime = currentTime;
+            const deltaTime = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+            
+            if (!isPaused) {
+                updateSimulation(dt);
+            }
+            
+            drawPendulum();
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize
+        predTheta = trueTheta + initialError;
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

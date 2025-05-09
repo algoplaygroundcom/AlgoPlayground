@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalman Filter – Measurement Noise</title>
+    <!-- Add KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<style>
+  #simulationArea {
+      height: 500px;
+      position: relative;
+  }
+
+  #pendulumCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+  }
+</style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Kalman Filter – Measurement Noise</h1>
+            <p>Interactive algorithm learning with a pendulum simulation</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="section">
+            <h2>The Problem: Measurement Noise</h2>
+            <p>In real‑world systems, every measurement comes with noise. The noise may stem from imperfect sensors, environmental disturbances, or physical limitations.</p>
+            
+            <div class="highlight">
+                <p><strong>Challenge:</strong> How can we accurately estimate the system state (pendulum angle) when our measurements are noisy and inaccurate?</p>
+            </div>
+            
+            <h3>Mathematical Model of Measurement Noise</h3>
+            <p>You can represent the noisy measurement as the true value plus Gaussian noise:</p>
+            
+            <div class="math-block">
+                \[ z_t = \theta_t + v_t \]
+            </div>
+            
+            <p>Where:</p>
+            <ul>
+                <li><strong>z<sub>t</sub></strong> – measurement at time t</li>
+                <li><strong>θ<sub>t</sub></strong> – true angle at time t</li>
+                <li><strong>v<sub>t</sub></strong> – measurement noise ~ N(0, R)</li>
+                <li><strong>R</strong> – noise variance (intensity)</li>
+            </ul>
+            
+            <p>The larger R is, the less reliable the measurements become. The Kalman filter is designed to overcome this problem.</p>
+        </section>
+
+        <section class="section">
+            <h2>Interactive Measurement‑Noise Simulation</h2>
+            <p>Play with the parameters to see how noise affects the measurements:</p>
+            
+            <div class="simulation-container">
+                <div class="canvas-container" id="simulationArea">
+                    <canvas id="pendulumCanvas"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <div class="slider-container">
+                        <label for="noiseSlider">Noise intensity (R):</label>
+                        <span class="value-display" id="noiseValue">0.1</span>
+                        <input type="range" id="noiseSlider" min="0" max="1" step="0.01" value="0.1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="measurementRateSlider">Measurement rate (measurements / s):</label>
+                        <span class="value-display" id="measurementRateValue">5</span>
+                        <input type="range" id="measurementRateSlider" min="1" max="20" step="1" value="5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="pointLifetimeSlider">Point lifetime (s):</label>
+                        <span class="value-display" id="pointLifetimeValue">3</span>
+                        <input type="range" id="pointLifetimeSlider" min="1" max="10" step="0.5" value="3">
+                    </div>
+                    
+                    <div class="button-container">
+                        <button id="resetButton">Reset</button>
+                        <button id="pauseButton">Pause</button>
+                        <button id="clearPointsButton">Clear Points</button>
+                    </div>
+                    
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Noise std. dev.</div>
+                            <div class="metric-value"><span id="stdDevValue">0.32</span> radians</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Measurement count</div>
+                            <div class="metric-value"><span id="measurementCount">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>Observation:</strong> As the noise intensity grows, the measurement dots drift farther from the true pendulum. The Kalman filter uses the system’s dynamic model to “filter out” this noise.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>State Vector &amp; Predict Step</h2>
+            <p>The first building‑block of the Kalman filter is deciding <em>what</em> we are going to estimate.  
+               For the pendulum we use a two‑dimensional state vector:</p>
+
+            <div class="math-block">
+                \[
+                  x =
+                  \begin{bmatrix}
+                    \theta \\[4pt]
+                    \dot{\theta}
+                  \end{bmatrix}
+                \]
+            </div>
+
+            <ul>
+                <li><strong>θ (rad)</strong> – the current angle measured from the vertical.</li>
+                <li><strong>θ̇ (rad/s)</strong> – the angular velocity.</li>
+            </ul>
+
+            <h3>Predicting the next state</h3>
+            <p>Between measurements the pendulum follows Newton’s laws, so we can <em>predict</em> its
+               state a small time Δt later with the continuous‑time model\(^†\):</p>
+
+            <p>Let’s think about how the state evolves in continuous time. The state vector contains the angle and angular velocity:
+            \[
+              x =
+              \begin{bmatrix}
+                \theta \\
+                \dot{\theta}
+              \end{bmatrix}
+            \]
+            If we assume small enough time steps, then we can approximate the state at the next moment using linearized equations:  
+            \[
+              \theta(t+\Delta t) \approx \theta(t) + \Delta t \cdot \dot{\theta}(t)
+            \]
+            \[
+              \dot{\theta}(t+\Delta t) \approx \dot{\theta}(t) + \Delta t \cdot \ddot{\theta}(t)
+            \]
+            where \(\ddot{\theta}(t) = -\frac{g}{L} \sin(\theta) - d\cdot\dot{\theta}\). For small angles, \(\sin(\theta) \approx \theta\), so this becomes linear in \(\theta\) and \(\dot{\theta}\), and can be written compactly using a matrix multiplication:
+            </p>
+
+            <div class="math-block">
+                \[
+                  x(t+\Delta t) \approx
+                  \left(
+                    I + \Delta t \cdot
+                    \begin{bmatrix}
+                      0 & 1 \\
+                      -\dfrac{g}{L} & -d
+                    \end{bmatrix}
+                  \right) x(t)
+                  \;=\; A_d\,x(t)
+                \]
+            </div>
+
+            <p>This is the <strong>Predict Step</strong>: it gives us a best guess on how we expect the system to evolve.</p>
+
+            <div class="math-block">
+                \[
+                  x_{k} \;=\; A_d\,x_{k-1}
+                \]
+            </div>
+
+            <p>where <strong>A<sub>d</sub></strong> is the discrete‑time transition matrix derived from the physics.</p>
+
+            <h3>What’s next?</h3>
+            <p>In the upcoming sections we will add</p>
+            <ol>
+                <li>Process‑noise <strong>Q</strong> – to acknowledge modelling imperfections,</li>
+                <li>The measurement vector <strong>z</strong>, and</li>
+                <li>The Kalman gain <strong>K</strong> that fuses model and data.</li>
+            </ol>
+
+            <p class="highlight"><strong>Take‑away:</strong> The Predict Step propagates our belief forward using only the model;
+               its accuracy hinges on the quality of <em>A</em> and the chosen sample period.</p>
+            <p style="font-size:0.8em">† Linearised around small angles for clarity; the live simulation uses the full non‑linear equations.</p>
+        </section>
+        
+        <div class="nav-buttons">
+            <button onclick="window.location.href='pendulum-intro.html'">← Previous section</button>
+            <button id="nextButton" onclick="window.location.href='kalman-filter.html'">Next section →</button>
+        </div>
+    </div>
+
+    <!-- Add KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        // Wait for the page to load before rendering math
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            });
+        });
+
+        // Global variables
+        let length = 1.0;
+        let gravity = 9.8;
+        let angle = 30;
+        let damping = 0.02;
+        
+        let theta = angle * Math.PI / 180;
+        let omega = 0;
+        let time = 0;
+        
+        let isPaused = false;
+        let noiseLevel = 0.1;
+        let measurementRate = 5; // measurements per second
+        let pointLifetime = 3; // seconds
+        let lastMeasurementTime = 0;
+        let measurementCount = 0;
+        
+        // Measurement points array: {x, y, time, opacity}
+        let measurementPoints = [];
+        
+        // Get canvas and its context
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+        const simulationArea = document.getElementById('simulationArea');
+        
+        // Adjust canvas size
+        function resizeCanvas() {
+            const rect = simulationArea.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Update slider values and display
+        document.getElementById('noiseSlider').addEventListener('input', function() {
+            noiseLevel = parseFloat(this.value);
+            document.getElementById('noiseValue').textContent = noiseLevel.toFixed(2);
+            document.getElementById('stdDevValue').textContent = Math.sqrt(noiseLevel).toFixed(2);
+        });
+        
+        document.getElementById('measurementRateSlider').addEventListener('input', function() {
+            measurementRate = parseInt(this.value);
+            document.getElementById('measurementRateValue').textContent = measurementRate;
+        });
+        
+        document.getElementById('pointLifetimeSlider').addEventListener('input', function() {
+            pointLifetime = parseFloat(this.value);
+            document.getElementById('pointLifetimeValue').textContent = pointLifetime;
+        });
+        
+        document.getElementById('resetButton').addEventListener('click', function() {
+            theta = angle * Math.PI / 180;
+            omega = 0;
+            time = 0;
+            lastMeasurementTime = 0;
+        });
+        
+        document.getElementById('pauseButton').addEventListener('click', function() {
+            isPaused = !isPaused;
+            this.textContent = isPaused ? 'Resume' : 'Pause';
+        });
+        
+        document.getElementById('clearPointsButton').addEventListener('click', function() {
+            measurementPoints = [];
+            measurementCount = 0;
+            document.getElementById('measurementCount').textContent = measurementCount;
+        });
+        
+        // Add noisy measurement point
+        function addMeasurementPoint() {
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 3;
+            const scale = 100;
+
+            // Apply noise only to the angle (theta)
+            const noisyTheta = theta + gaussianRandom(0, noiseLevel);
+
+            const measX = originX + length * scale * Math.sin(noisyTheta);
+            const measY = originY + length * scale * Math.cos(noisyTheta);
+
+            measurementPoints.push({
+                x: measX,
+                y: measY,
+                time: time,
+                opacity: 1.0
+            });
+
+            measurementCount++;
+            document.getElementById('measurementCount').textContent = measurementCount;
+        }
+        
+        // Gaussian random number generator
+        function gaussianRandom(mean=0, stdev=1) {
+            const u = 1 - Math.random();
+            const v = Math.random();
+            const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            return z * Math.sqrt(stdev) + mean;
+        }
+        
+        // Update the pendulum simulation
+        function updateSimulation(dt) {
+            if (isPaused) return;
+            
+            // Implement Runge-Kutta 4th order method
+            function derivatives(t, th, om) {
+                return {
+                    dTheta: om,
+                    dOmega: -gravity / length * Math.sin(th) - damping * om
+                };
+            }
+            
+            const k1 = derivatives(time, theta, omega);
+            const k2 = derivatives(
+                time + dt/2, 
+                theta + dt/2 * k1.dTheta, 
+                omega + dt/2 * k1.dOmega
+            );
+            const k3 = derivatives(
+                time + dt/2, 
+                theta + dt/2 * k2.dTheta, 
+                omega + dt/2 * k2.dOmega
+            );
+            const k4 = derivatives(
+                time + dt, 
+                theta + dt * k3.dTheta, 
+                omega + dt * k3.dOmega
+            );
+            
+            theta += dt * (k1.dTheta + 2*k2.dTheta + 2*k3.dTheta + k4.dTheta) / 6;
+            omega += dt * (k1.dOmega + 2*k2.dOmega + 2*k3.dOmega + k4.dOmega) / 6;
+            time += dt;
+            
+            // Add measurement points at specified rate
+            if (time - lastMeasurementTime > 1/measurementRate) {
+                addMeasurementPoint();
+                lastMeasurementTime = time;
+            }
+            
+            // Update measurement points opacity based on lifetime
+            measurementPoints.forEach(point => {
+                point.opacity = 1 - (time - point.time) / pointLifetime;
+            });
+            
+            // Remove old points
+            measurementPoints = measurementPoints.filter(point => (time - point.time) < pointLifetime);
+        }
+        
+        // Draw the pendulum and measurement points
+        function drawPendulum() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate positions
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 3;
+            const scale = 100;
+            const bobX = originX + length * scale * Math.sin(theta);
+            const bobY = originY + length * scale * Math.cos(theta);
+            
+            // Draw measurement points first (so pendulum appears on top)
+            measurementPoints.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = `rgba(75, 192, 192, ${point.opacity})`;
+                ctx.fill();
+            });
+            
+            // Draw the rod
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = '#414f63';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw pivot point
+            ctx.beginPath();
+            ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#414f63';
+            ctx.fill();
+            
+            // Draw the bob
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f05454';
+            ctx.fill();
+            ctx.strokeStyle = '#e63946';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw reference line
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX, originY + length * scale);
+            ctx.strokeStyle = '#c4c9d1';
+            ctx.setLineDash([5, 3]);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Display current angle
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#414f63';
+            ctx.textAlign = 'right';
+            const currentAngle = (theta * 180 / Math.PI).toFixed(1);
+            ctx.fillText('Angle: ' + currentAngle + '°', canvas.width - 20, 30);
+        }
+        
+        // Animation loop
+        let lastTime = 0;
+        
+        function animate(currentTime) {
+            if (!lastTime) lastTime = currentTime;
+            const deltaTime = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+            
+            updateSimulation(Math.min(deltaTime, 0.02));
+            drawPendulum();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize
+        document.getElementById('stdDevValue').textContent = Math.sqrt(noiseLevel).toFixed(2);
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
