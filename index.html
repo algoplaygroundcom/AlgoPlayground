@@ -223,9 +223,6 @@
             this.textContent = isPaused ? 'Resume' : 'Pause';
         });
         
-        document.getElementById('nextButton').addEventListener('click', function() {
-            alert('The next part of the tutorial is under development. It will cover Kalman Filter and its application to the pendulum.');
-        });
         
         // Calculate and update pendulum period
         function updatePeriod() {
@@ -363,6 +360,7 @@
         
         // Start animation and simulation
         updatePeriod();
+        console.log("Starting animation...");
         requestAnimationFrame(animate);
     </script>
 </body>
