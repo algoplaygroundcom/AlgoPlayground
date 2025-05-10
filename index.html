@@ -3,153 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalman Filter Playground</title>
-    <!-- Add KaTeX CSS -->
+    <title>AlgoPlayground - Interactive Algorithm Learning</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Color Variables */
+        :root {
+            --primary-color: #f05454;
+            --secondary-color: #414f63;
+            --background-color: #f9f9f9;
+            --light-accent: #e8e8e8;
+            --text-color: #333;
+            --highlight-color: #e63946;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 1.5rem 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(to bottom, var(--secondary-color), var(--background-color));
+            color: white;
+        }
+
+        .hero img {
+            max-width: 200px;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: var(--highlight-color);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        /* Tutorials Section */
+        .tutorials {
+            padding: 4rem 0;
+            background-color: var(--light-accent);
+            text-align: center;
+        }
+
+        .tutorials h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+        }
+
+        .tutorials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tutorial-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .tutorial-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tutorial-image {
+            height: 180px;
+            background-color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .tutorial-content {
+            padding: 1.5rem;
+        }
+
+        .tutorial-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+
+        .tutorial-content p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .tutorial-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .tutorial-link:hover {
+            color: var(--highlight-color);
+        }
+
+        /* About Section */
+        .about {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+        }
+
+        .about-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .about-text {
+            flex: 1;
+            min-width: 300px;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .about-image {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .about-image img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Newsletter Section */
+        .newsletter {
+            padding: 4rem 0;
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+        }
+
+        .newsletter h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .newsletter p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .newsletter-form {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 600px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.8rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .newsletter-form button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 0 5px 5px 0;
+            transition: background-color 0.3s;
+        }
+
+        .newsletter-form button:hover {
+            background-color: var(--highlight-color);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .social-links {
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 0.5rem;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            color: #c4c9d1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .feature-grid, .tutorials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .about-content {
+                flex-direction: column-reverse;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .newsletter-form input, .newsletter-form button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                border-radius: 5px;
+            }
+        }
+
+        /* For the placeholder icons */
+        .icon-placeholder {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .icon-placeholder::before, .icon-placeholder::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+        }
+
+        .icon-interactive::before {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+            border-radius: 50%;
+        }
+
+        .icon-visual::before {
+            width: 60%;
+            height: 40%;
+            top: 30%;
+            left: 20%;
+            border-radius: 20%;
+        }
+
+        .icon-hands::before {
+            width: 40%;
+            height: 30%;
+            top: 35%;
+            left: 30%;
+            border-radius: 50% 50% 0 0;
+        }
+    </style>
 </head>
-<style>
-    #simulationArea {
-        height: 500px;
-        position: relative;
-    }
-  
-    #pendulumCanvas {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-  </style>
 <body>
     <header>
         <div class="container">
-            <h1>Kalman Filter Playground</h1>
-            <p>Learn algorithmic concepts through interactive pendulum simulation</p>
+            <h1>AlgoPlayground</h1>
+            <p>Interactive Journey to Master Algorithms</p>
         </div>
     </header>
 
-    <div class="container">
-        <section class="section">
-            <h2>Introduction to Simple Pendulum</h2>
-            <p>A simple pendulum is a fundamental physical system consisting of a mass attached to a lightweight rod. When the pendulum moves, it performs a periodic motion under the influence of gravity.</p>
-            
-            <div class="highlight">
-                <p>The pendulum serves as an excellent example of a dynamic system where we can apply Kalman filtering for tracking and prediction.</p>
-            </div>
-            
-            <h3>Physics of the Pendulum</h3>
-            <p>The motion of a simple pendulum is described by a second-order differential equation:</p>
-            
-            <div class="math-block">
-                \[\frac{d^2\theta}{dt^2} + \frac{g}{L}\sin(\theta) = 0\]
-            </div>
-            
-            <p>Where:</p>
-            <ul>
-                <li><strong>θ</strong> = angle from vertical (in radians)</li>
-                <li><strong>g</strong> = gravitational acceleration (9.8 m/s²)</li>
-                <li><strong>L</strong> = pendulum length (in meters)</li>
-            </ul>
-            
-            <p>For small angles (θ < 15°), we can approximate the equation to:</p>
-            
-            <div class="math-block">
-                \[\frac{d^2\theta}{dt^2} + \frac{g}{L}\theta = 0\]
-            </div>
-            
-            <p>This becomes a simple harmonic oscillator with angular frequency:</p>
-            
-            <div class="math-block">
-                \[\omega = \sqrt{\frac{g}{L}}\]
-            </div>
-            
-            <p>And the period (time for one complete oscillation) of the pendulum is:</p>
-            
-            <div class="math-block">
-                \[T = 2\pi\sqrt{\frac{L}{g}}\]
-            </div>
-        </section>
+    <section class="hero">
+        <div class="container">
+            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo">
+            <h1>Learn Algorithms Through Play</h1>
+            <p>Experience complex algorithms through interactive visualizations and hands-on simulations. Turn abstract concepts into intuitive understanding.</p>
+            <a href="#tutorials" class="cta-button">Explore Tutorials</a>
+        </div>
+    </section>
 
-        <section class="section">
-            <h2>Interactive Pendulum Simulation</h2>
-            <p>Adjust the various parameters and see how they affect the pendulum's motion:</p>
+    <section class="features">
+        <div class="container">
+            <h2>Why AlgoPlayground?</h2>
+            <p>Our interactive approach makes learning algorithms engaging and effective</p>
             
-            <div class="simulation-container">
-                <div class="canvas-container">
-                    <canvas id="pendulumCanvas"></canvas>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon-placeholder icon-interactive"></div>
+                    <h3>Interactive Learning</h3>
+                    <p>Engage with algorithms in real-time, adjusting parameters and seeing immediate results to build intuition and understanding.</p>
                 </div>
                 
-                <div class="controls">
-                    <div class="slider-container">
-                        <label for="lengthSlider">Pendulum Length (m):</label>
-                        <span class="value-display" id="lengthValue">1.0</span>
-                        <input type="range" id="lengthSlider" min="0.1" max="2" step="0.1" value="1.0">
+                <div class="feature-card">
+                    <div class="icon-placeholder icon-visual"></div>
+                    <h3>Visual Explanations</h3>
+                    <p>Complex concepts are broken down into clear, visual representations that make algorithms easy to understand.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon-placeholder icon-hands"></div>
+                    <h3>Hands-on Experience</h3>
+                    <p>Learn by doing with our playground environments that let you experiment with algorithms in a risk-free setting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tutorials" id="tutorials">
+        <div class="container">
+            <h2>Our Tutorials</h2>
+            <p>Start your journey with these interactive algorithm tutorials</p>
+            
+            <div class="tutorials-grid">
+                <div class="tutorial-card">
+                    <div class="tutorial-image">
+                        <span>KF</span>
                     </div>
-                    
-                    <div class="slider-container">
-                        <label for="gravitySlider">Gravitational Acceleration (m/s²):</label>
-                        <span class="value-display" id="gravityValue">9.8</span>
-                        <input type="range" id="gravitySlider" min="1" max="20" step="0.1" value="9.8">
+                    <div class="tutorial-content">
+                        <h3>Kalman Filter</h3>
+                        <p>Learn how Kalman filters work through an interactive pendulum simulation. Understand state estimation in noisy environments.</p>
+                        <a href="kalman1.html" class="tutorial-link">Start Learning →</a>
                     </div>
-                    
-                    <div class="slider-container">
-                        <label for="angleSlider">Initial Angle (degrees):</label>
-                        <span class="value-display" id="angleValue">30</span>
-                        <input type="range" id="angleSlider" min="0" max="90" step="1" value="30">
+                </div>
+                
+                <div class="tutorial-card">
+                    <div class="tutorial-image">
+                        <span>CS</span>
                     </div>
-                    
-                    <div class="slider-container">
-                        <label for="dampingSlider">Damping Coefficient:</label>
-                        <span class="value-display" id="dampingValue">0.02</span>
-                        <input type="range" id="dampingSlider" min="0" max="0.2" step="0.01" value="0.02">
+                    <div class="tutorial-content">
+                        <h3>Coming Soon: Pathfinding Algorithms</h3>
+                        <p>Explore graph traversal algorithms including A*, Dijkstra's, and BFS through interactive grid-based visualizations.</p>
+                        <a href="#" class="tutorial-link">Notify Me →</a>
                     </div>
-                    
-                    <div class="button-container">
-                        <button id="resetButton">Reset</button>
-                        <button id="pauseButton">Pause</button>
+                </div>
+                
+                <div class="tutorial-card">
+                    <div class="tutorial-image">
+                        <span>CS</span>
                     </div>
-                    
-                    <div class="metrics">
-                        <div class="metric-card">
-                            <div class="metric-label">Period</div>
-                            <div class="metric-value"><span id="periodValue">2.0</span> s</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-label">Energy</div>
-                            <div class="metric-value"><span id="energyValue">0.0</span> J</div>
-                        </div>
+                    <div class="tutorial-content">
+                        <h3>Coming Soon: Sorting Visualized</h3>
+                        <p>See sorting algorithms in action with step-by-step visualizations of bubble sort, quicksort, merge sort and more.</p>
+                        <a href="#" class="tutorial-link">Notify Me →</a>
                     </div>
                 </div>
             </div>
-            
-            <div class="highlight">
-                <p><strong>Note:</strong> Increasing the pendulum length increases the period (slower oscillations). Increasing gravity decreases the period (faster oscillations).</p>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Tracking the Pendulum State</h2>
-            <p>To understand the Kalman Filter algorithm, we'll start by understanding the system state. The state of the pendulum can be described by a two-component vector:</p>
-            
-            <div class="math-block">
-                \[x = \begin{bmatrix} \theta \\ \dot{\theta} \end{bmatrix}\]
-            </div>
-            
-            <p>Where:</p>
-            <ul>
-                <li><strong>θ</strong> = angle from vertical</li>
-                <li><strong>θ̇</strong> = angular velocity</li>
-            </ul>
-            
-            <p>In the following sections, we'll see how the Kalman Filter algorithm allows us to track this state even when our measurements are noisy or incomplete.</p>
-        </section>
-        
-        <div class="nav-buttons">
-            <button class="disabled-button">Previous</button>
-            <button onclick="window.location.href='kalman2.html'">Next →</button>
         </div>
-    </div>
+    </section>
+
+    <section class="about" id="about">
+        <div class="container">
+            <h2>About AlgoPlayground</h2>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <p>AlgoPlayground was created with a simple mission: make algorithm learning accessible, interactive, and fun. Traditional algorithm education often relies heavily on mathematical notation and abstract concepts that can be difficult to grasp.</p>
+                    <br>
+                    <p>We believe that algorithms are best understood through direct interaction and visualization. By providing interactive simulations, we help learners build intuition for complex concepts through exploration and play.</p>
+                    <br>
+                    <p>Whether you're a student, educator, or professional looking to deepen your understanding of algorithms, AlgoPlayground offers a hands-on approach that complements traditional learning resources.</p>
+                </div>
+                <div class="about-image">
+                    <img src="assets/img/AlgoPlayground.png" alt="Learning Algorithms">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter">
+        <div class="container">
+            <h2>Stay Updated</h2>
+            <p>Subscribe to our newsletter to be notified when we release new algorithm tutorials and features.</p>
+            
+            <form class="newsletter-form">
+                <input type="email" placeholder="Your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#about">About</a>
+                <a href="#tutorials">Tutorials</a>
+                <a href="#">Contact</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            
+            <div class="social-links">
+                <!-- Placeholder for social media icons -->
+                <a href="#">Twitter</a>
+                <a href="#">GitHub</a>
+                <a href="#">LinkedIn</a>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 AlgoPlayground. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
     <!-- Add KaTeX JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx" crossorigin="anonymous"></script>
@@ -167,201 +556,6 @@
                 throwOnError: false
             });
         });
-
-        // Global variables
-        let length = 1.0;         // pendulum length in meters
-        let gravity = 9.8;        // gravitational acceleration in m/s²
-        let angle = 30;           // initial angle in degrees
-        let damping = 0.02;       // damping coefficient
-        
-        let theta = angle * Math.PI / 180;  // convert to radians
-        let omega = 0;                      // initial angular velocity
-        let time = 0;                       // time
-        
-        let isPaused = false;               // is simulation paused
-        
-        // Get canvas and its context
-        const canvas = document.getElementById('pendulumCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Adjust canvas size
-        function resizeCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        // Update slider values and display
-        document.getElementById('lengthSlider').addEventListener('input', function() {
-            length = parseFloat(this.value);
-            document.getElementById('lengthValue').textContent = length.toFixed(1);
-            updatePeriod();
-        });
-        
-        document.getElementById('gravitySlider').addEventListener('input', function() {
-            gravity = parseFloat(this.value);
-            document.getElementById('gravityValue').textContent = gravity.toFixed(1);
-            updatePeriod();
-        });
-        
-        document.getElementById('angleSlider').addEventListener('input', function() {
-            angle = parseFloat(this.value);
-            document.getElementById('angleValue').textContent = angle.toFixed(0);
-            resetSimulation();
-        });
-        
-        document.getElementById('dampingSlider').addEventListener('input', function() {
-            damping = parseFloat(this.value);
-            document.getElementById('dampingValue').textContent = damping.toFixed(2);
-        });
-        
-        document.getElementById('resetButton').addEventListener('click', resetSimulation);
-        
-        document.getElementById('pauseButton').addEventListener('click', function() {
-            isPaused = !isPaused;
-            this.textContent = isPaused ? 'Resume' : 'Pause';
-        });
-        
-        
-        // Calculate and update pendulum period
-        function updatePeriod() {
-            const period = 2 * Math.PI * Math.sqrt(length / gravity);
-            document.getElementById('periodValue').textContent = period.toFixed(2);
-        }
-        
-        // Calculate total energy of the pendulum
-        function calculateEnergy() {
-            // Kinetic energy: 0.5 * m * L^2 * omega^2 (assuming m=1 for simplicity)
-            const kineticEnergy = 0.5 * Math.pow(length, 2) * Math.pow(omega, 2);
-            
-            // Potential energy: m * g * L * (1 - cos(theta)) (assuming m=1 for simplicity)
-            const potentialEnergy = gravity * length * (1 - Math.cos(theta));
-            
-            return kineticEnergy + potentialEnergy;
-        }
-        
-        // Reset the simulation
-        function resetSimulation() {
-            theta = angle * Math.PI / 180;  // convert to radians
-            omega = 0;                      // initial angular velocity
-            time = 0;                       // time
-        }
-        
-        // Update the pendulum simulation
-        function updateSimulation(dt) {
-            if (isPaused) return;
-            
-            // Implement Runge-Kutta 4th order method to solve the differential equation
-            
-            // Function to compute derivatives of theta and omega
-            function derivatives(t, th, om) {
-                return {
-                    dTheta: om,
-                    dOmega: -gravity / length * Math.sin(th) - damping * om
-                };
-            }
-            
-            // Compute using RK4
-            const k1 = derivatives(time, theta, omega);
-            const k2 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k1.dTheta, 
-                omega + dt/2 * k1.dOmega
-            );
-            const k3 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k2.dTheta, 
-                omega + dt/2 * k2.dOmega
-            );
-            const k4 = derivatives(
-                time + dt, 
-                theta + dt * k3.dTheta, 
-                omega + dt * k3.dOmega
-            );
-            
-            theta += dt * (k1.dTheta + 2*k2.dTheta + 2*k3.dTheta + k4.dTheta) / 6;
-            omega += dt * (k1.dOmega + 2*k2.dOmega + 2*k3.dOmega + k4.dOmega) / 6;
-            time += dt;
-            
-            // Update energy value
-            const energy = calculateEnergy();
-            document.getElementById('energyValue').textContent = energy.toFixed(2);
-        }
-        
-        // Draw the pendulum
-        function drawPendulum() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Calculate origin position (pivot point)
-            const originX = canvas.width / 2;
-            const originY = canvas.height / 3;
-            
-            // Calculate bob position (end of pendulum)
-            const scale = 100;  // scale factor to convert meters to pixels
-            const bobX = originX + length * scale * Math.sin(theta);
-            const bobY = originY + length * scale * Math.cos(theta);
-            
-            // Draw the rod
-            ctx.beginPath();
-            ctx.moveTo(originX, originY);
-            ctx.lineTo(bobX, bobY);
-            ctx.strokeStyle = '#414f63';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw pivot point
-            ctx.beginPath();
-            ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = '#414f63';
-            ctx.fill();
-            
-            // Draw the bob
-            ctx.beginPath();
-            ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
-            ctx.fillStyle = '#f05454';
-            ctx.fill();
-            ctx.strokeStyle = '#e63946';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw reference line marking the vertical
-            ctx.beginPath();
-            ctx.moveTo(originX, originY);
-            ctx.lineTo(originX, originY + length * scale);
-            ctx.strokeStyle = '#c4c9d1';
-            ctx.setLineDash([5, 3]);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Display current angle in text
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#414f63';
-            ctx.textAlign = 'right';
-            const currentAngle = (theta * 180 / Math.PI).toFixed(1);
-            ctx.fillText('Angle: ' + currentAngle + '°', canvas.width - 20, 30);
-        }
-        
-        // Animation loop
-        let lastTime = 0;
-        
-        function animate(currentTime) {
-            if (!lastTime) lastTime = currentTime;
-            const deltaTime = (currentTime - lastTime) / 1000; // convert to seconds
-            lastTime = currentTime;
-            
-            updateSimulation(Math.min(deltaTime, 0.02)); // limit delta time to prevent instability
-            drawPendulum();
-            
-            requestAnimationFrame(animate);
-        }
-        
-        // Start animation and simulation
-        updatePeriod();
-        console.log("Starting animation...");
-        requestAnimationFrame(animate);
     </script>
 </body>
 </html>
