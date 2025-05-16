@@ -7,26 +7,56 @@
     <!-- Add KaTeX CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <link rel="stylesheet" href="styles.css">
-</head>
-<style>
-  #simulationArea {
-      height: 500px;
-      position: relative;
-  }
-
-  #pendulumCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-  }
-</style>
+    <style>
+      #simulationArea {
+        height: 500px;
+        position: relative;
+      }
+      #pendulumCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        width: 90%;
+      }
+      .header-title h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+      .header-title p {
+        margin: 0;
+        font-size: 1rem;
+        color: #ffffff;
+      }
+      .logo {
+        max-height: 80px;
+      }
+      .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin: 40px 0;
+      }
+      .nav-buttons button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    </style>
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>Kalman Filter – Measurement Noise</h1>
-            <p>Interactive algorithm learning with a pendulum simulation</p>
+      <div class="header-flex">
+        <div class="header-title">
+          <h1>Kalman Filter – Measurement Noise</h1>
+          <p>Interactive algorithm learning with a pendulum simulation</p>
         </div>
+        <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+      </div>
     </header>
 
     <div class="container">
@@ -55,6 +85,7 @@
             
             <p>The larger R is, the less reliable the measurements become. The Kalman filter is designed to overcome this problem.</p>
         </section>
+
 
         <section class="section">
             <h2>Interactive Measurement‑Noise Simulation</h2>
@@ -109,58 +140,40 @@
         </section>
 
         <section class="section">
-            <h2>State Vector &amp; Predict Step</h2>
+            <h2>State Vector &amp; Predict Step</h2>
             <p>The first building‑block of the Kalman filter is deciding <em>what</em> we are going to estimate.  
-               For the pendulum we use a two‑dimensional state vector:</p>
+                For the pendulum we use a two‑dimensional state vector:</p>
 
             <div class="math-block">
                 \[
-                  x =
-                  \begin{bmatrix}
+                    x =
+                    \begin{bmatrix}
                     \theta \\[4pt]
                     \dot{\theta}
-                  \end{bmatrix}
+                    \end{bmatrix}
                 \]
             </div>
 
             <ul>
-                <li><strong>θ (rad)</strong> – the current angle measured from the vertical.</li>
-                <li><strong>θ̇ (rad/s)</strong> – the angular velocity.</li>
+                <li><strong>θ (rad)</strong> – the current angle measured from the vertical.</li>
+                <li><strong>θ̇ (rad/s)</strong> – the angular velocity.</li>
             </ul>
 
             <h3>Predicting the next state</h3>
-            <p>Between measurements the pendulum follows Newton’s laws, so we can <em>predict</em> its
-               state a small time Δt later with the continuous‑time model\(^†\):</p>
-
-            <p>Let’s think about how the state evolves in continuous time. The state vector contains the angle and angular velocity:
-            \[
-              x =
-              \begin{bmatrix}
-                \theta \\
-                \dot{\theta}
-              \end{bmatrix}
-            \]
-            If we assume small enough time steps, then we can approximate the state at the next moment using linearized equations:  
-            \[
-              \theta(t+\Delta t) \approx \theta(t) + \Delta t \cdot \dot{\theta}(t)
-            \]
-            \[
-              \dot{\theta}(t+\Delta t) \approx \dot{\theta}(t) + \Delta t \cdot \ddot{\theta}(t)
-            \]
-            where \(\ddot{\theta}(t) = -\frac{g}{L} \sin(\theta) - d\cdot\dot{\theta}\). For small angles, \(\sin(\theta) \approx \theta\), so this becomes linear in \(\theta\) and \(\dot{\theta}\), and can be written compactly using a matrix multiplication:
-            </p>
+            <p>Between measurements the pendulum follows Newton's laws, so we can <em>predict</em> its
+                state a small time Δt later with the continuous‑time model\(^†\):</p>
 
             <div class="math-block">
                 \[
-                  x(t+\Delta t) \approx
-                  \left(
+                    x(t+\Delta t) \approx
+                    \left(
                     I + \Delta t \cdot
                     \begin{bmatrix}
-                      0 & 1 \\
-                      -\dfrac{g}{L} & -d
+                        0 & 1 \\
+                        -\dfrac{g}{L} & -d
                     \end{bmatrix}
-                  \right) x(t)
-                  \;=\; A_d\,x(t)
+                    \right) x(t)
+                    \;=\; A_d\,x(t)
                 \]
             </div>
 
@@ -168,62 +181,304 @@
 
             <div class="math-block">
                 \[
-                  x_{k} \;=\; A_d\,x_{k-1}
+                    x_{k} \;=\; A_d\,x_{k-1}
                 \]
             </div>
 
-            <p>where <strong>A<sub>d</sub></strong> is the discrete‑time transition matrix derived from the physics.</p>
+            <h3>Error Covariance Propagation</h3>
+            <p>In addition to predicting the state, the Kalman filter also predicts how uncertainty (error) propagates through the system. This is represented by the error covariance matrix P:</p>
+            
+            <div class="math-block">
+                \[
+                    P_k = A_d\,P_{k-1}\,A_d^T + Q
+                \]
+            </div>
+            
+            <p>Where:</p>
+            <ul>
+                <li><strong>P<sub>k</sub></strong> – error covariance matrix at time step k</li>
+                <li><strong>A<sub>d</sub></strong> – system dynamics matrix</li>
+                <li><strong>Q</strong> – process noise covariance (model uncertainty)</li>
+            </ul>
+            
+            <p>The error covariance matrix P represents our uncertainty about the state estimate. For our 2D state vector, P is a 2×2 matrix:</p>
+            
+            <div class="math-block">
+                \[
+                    P =
+                    \begin{bmatrix}
+                    \sigma_{\theta}^2 & \sigma_{\theta\dot{\theta}} \\[4pt]
+                    \sigma_{\theta\dot{\theta}} & \sigma_{\dot{\theta}}^2
+                    \end{bmatrix}
+                \]
+            </div>
+            
+            <p>Where:</p>
+            <ul>
+                <li><strong>σ<sub>θ</sub><sup>2</sup></strong> – variance of angle estimate</li>
+                <li><strong>σ<sub>θ̇</sub><sup>2</sup></strong> – variance of angular velocity estimate</li>
+                <li><strong>σ<sub>θθ̇</sub></strong> – covariance between angle and angular velocity estimates</li>
+            </ul>
 
-            <h3>Visualizing the Prediction</h3>
-            <p>Let’s compare the true pendulum motion (red) with the predicted one (blue), using only our linearized model and no measurements.</p>
+            <h3>Visualizing the Prediction and Error Growth</h3>
+            <p>Let's compare the true pendulum motion (red) with the predicted one (blue), using only our linearized model and no measurements. The ellipse shows the error covariance growing over time.</p>
 
             <div class="simulation-container" style="display: flex; flex-wrap: wrap;">
-              <div class="canvas-container" style="flex: 1 1 500px; min-width: 300px;">
+                <div class="canvas-container" style="flex: 1 1 500px; min-width: 300px;">
                 <canvas id="predictCanvas" style="width:100%; height:400px;"></canvas>
-              </div>
-              <div class="controls" style="flex: 1 1 300px; padding-left: 20px;">
+                </div>
+                <div class="controls" style="flex: 1 1 300px; padding-left: 20px;">
                 <div class="slider-container">
                     <label for="dtSlider">Time step (Δt):</label>
                     <span class="value-display" id="dtValue">0.05</span>
                     <input type="range" id="dtSlider" min="0.01" max="0.2" step="0.01" value="0.05">
                 </div>
+                <div class="slider-container">
+                    <label for="initialPSlider">Initial uncertainty (P₀):</label>
+                    <span class="value-display" id="initialPValue">0.01</span>
+                    <input type="range" id="initialPSlider" min="0.001" max="0.1" step="0.001" value="0.01">
+                </div>
+                <div class="slider-container">
+                    <label for="qSlider">Process noise (Q):</label>
+                    <span class="value-display" id="qValue">0.001</span>
+                    <input type="range" id="qSlider" min="0" max="0.01" step="0.0001" value="0.001">
+                </div>
                 <div class="button-container">
                     <button id="resetPredictButton">Reset</button>
                     <button id="pausePredictButton">Start</button>
                 </div>
-              </div>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Angle uncertainty</div>
+                        <div class="metric-value"><span id="angleUncertainty">0.01</span> rad</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Velocity uncertainty</div>
+                        <div class="metric-value"><span id="velocityUncertainty">0.01</span> rad/s</div>
+                    </div>
+                </div>
+                </div>
             </div>
 
             <div class="highlight">
-              <p><strong>Observation:</strong> Even without any noise, the predicted motion (blue) slowly diverges from the true dynamics (red).
-              This is because the prediction is only a <em>linear approximation</em> of the true physics. Over time, small errors accumulate.</p>
+                <p><strong>Observation:</strong> Even without any noise, the predicted motion (blue) slowly diverges from the true dynamics (red).
+                This is because the prediction is only a <em>linear approximation</em> of the true physics. Additionally, the uncertainty (shown by the ellipse) 
+                grows over time, representing decreased confidence in our estimate.</p>
             </div>
 
-            <p>That’s why we’ll need to <strong>combine predictions with real measurements</strong>. Even the best models are only approximations.
-            In the next step, we’ll see how to integrate noisy measurements into our prediction using the Kalman filter’s update phase.</p>
+            <p>That's why we'll need to <strong>combine predictions with real measurements</strong>. Even the best models are only approximations.
+            In the next step, we'll see how to integrate noisy measurements into our prediction using the Kalman filter's update phase.</p>
 
-            <h3>What’s next?</h3>
+            <h3>What's next?</h3>
             <p>In the upcoming sections we will add</p>
             <ol>
-                <li>The measurement vector <strong>z</strong>, and</li>
-                <li>The Kalman gain <strong>K</strong> that fuses model and data.</li>
+                <li>The measurement vector <strong>z</strong></li>
+                <li>The error covariance update through measurements</li>
+                <li>The Kalman gain <strong>K</strong> that fuses model and data optimally based on their uncertainties</li>
             </ol>
 
             <p class="highlight"><strong>Take‑away:</strong> Neither the physical model nor the measurements alone are sufficient:
                 the model is only an approximation, and the measurements are noisy and delayed.
-                The Kalman Filter combines both sources of information — dynamics and data — to produce the best possible estimate of the system’s state.</p>
-            <p style="font-size:0.8em">† Linearised around small angles for clarity; the live simulation uses the full non‑linear equations.</p>
+                The Kalman Filter combines both sources of information — dynamics and data — to produce the best possible estimate of the system's state by tracking and minimizing uncertainty.</p>
+            <p style="font-size:0.8em">† Linearised around small angles for clarity; the live simulation uses the full non‑linear equations.</p>
         </section>
-        
         <div class="nav-buttons">
-            <button onclick="window.location.href='kalman1.html'">Previous</button>
-            <button id="nextButton" onclick="window.location.href='kalman-filter.html'">Next section →</button>
+            <button onclick="window.location.href='kalman1.html'">← Previous</button>
+            <button onclick="window.location.href='kalman3.html'">Next →</button>
         </div>
     </div>
 
+
+    <!-- ==============  MEASUREMENT‑NOISE PENDULUM SIMULATION  ============== -->
+    <script>
+(function () {
+  /* ---------- physical constants ---------- */
+  const g = 9.8, L = 1.0, d = 0.02;
+
+  /* ---------- true state ---------- */
+  let theta = 0.5, omega = 0;
+
+  /* ---------- UI state ---------- */
+  let noiseStd = parseFloat(noiseSlider.value);            // measurement σ
+  let measRate  = parseInt(measurementRateSlider.value);   // Hz
+  let ptLife    = parseFloat(pointLifetimeSlider.value);   // seconds
+  let paused = false;
+
+  /* ---------- references ---------- */
+  const canvas = document.getElementById('pendulumCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  /* sliders / buttons / displays */
+  const noiseSliderEl = noiseSlider;
+  const measRateSliderEl = measurementRateSlider;
+  const ptLifeSliderEl = pointLifetimeSlider;
+  const pauseBtn = pauseButton;
+  const resetBtn = resetButton;
+  const clearBtn = clearPointsButton;
+
+  const noiseVal   = document.getElementById('noiseValue');
+  const measRateVal = document.getElementById('measurementRateValue');
+  const ptLifeVal  = document.getElementById('pointLifetimeValue');
+  const stdDevVal  = document.getElementById('stdDevValue');
+  const measCountSpan = document.getElementById('measurementCount');
+
+  /* ---------- measurement buffer ---------- */
+  const points = [];   // {theta, age}
+  let measTimer = 0;
+  let measCount = 0;
+
+  /* ---------- helpers ---------- */
+  function randn() {            // Box‑Muller
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function rk4(th, om, dt) {
+    function f(th, om) {
+      return { dth: om, dom: -g / L * Math.sin(th) - d * om };
+    }
+    const k1 = f(th, om);
+    const k2 = f(th + dt / 2 * k1.dth, om + dt / 2 * k1.dom);
+    const k3 = f(th + dt / 2 * k2.dth, om + dt / 2 * k2.dom);
+    const k4 = f(th + dt * k3.dth,  om + dt * k3.dom);
+    return {
+      th: th + dt / 6 * (k1.dth + 2*k2.dth + 2*k3.dth + k4.dth),
+      om: om + dt / 6 * (k1.dom + 2*k2.dom + 2*k3.dom + k4.dom)
+    };
+  }
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ---------- slider / button wiring ---------- */
+  noiseSliderEl.addEventListener('input', () => {
+    noiseStd = parseFloat(noiseSliderEl.value);
+    noiseVal.textContent = noiseStd.toFixed(2);
+    stdDevVal.textContent = noiseStd.toFixed(2);
+  });
+
+  measRateSliderEl.addEventListener('input', () => {
+    measRate = parseInt(measRateSliderEl.value, 10);
+    measRateVal.textContent = measRate;
+  });
+
+  ptLifeSliderEl.addEventListener('input', () => {
+    ptLife = parseFloat(ptLifeSliderEl.value);
+    ptLifeVal.textContent = ptLife;
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Start' : 'Pause';
+  });
+
+  resetBtn.addEventListener('click', () => {
+    theta = 0.5; omega = 0;
+    points.length = 0;
+    measTimer = 0; measCount = 0;
+    measCountSpan.textContent = '0';
+  });
+
+  clearBtn.addEventListener('click', () => {
+    points.length = 0;
+    measCount = 0;
+    measCountSpan.textContent = '0';
+  });
+
+  /* ---------- rendering ---------- */
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const ox = canvas.width / 2;
+    const oy = canvas.height / 3;
+    const scale = 100;
+
+    // reference line
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox, oy + scale * L);
+    ctx.strokeStyle = '#c4c9d1';
+    ctx.setLineDash([5, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // true pendulum
+    const xTrue = ox + scale * L * Math.sin(theta);
+    const yTrue = oy + scale * L * Math.cos(theta);
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(xTrue, yTrue);
+    ctx.strokeStyle = '#f05454';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(xTrue, yTrue, 12, 0, 2 * Math.PI);
+    ctx.fillStyle = '#f05454';
+    ctx.fill();
+
+    // noisy measurements
+    for (const pt of points) {
+      const alpha = 1 - pt.age / ptLife;
+      const x = ox + scale * L * Math.sin(pt.theta);
+      const y = oy + scale * L * Math.cos(pt.theta);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      // soft blue points, fading with α
+      ctx.fillStyle = `rgba(75,139,185,${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+  }
+
+  /* ---------- main loop ---------- */
+  const simDt = 1 / 60;   // physics & draw step  ~60 Hz
+  function loop() {
+    if (!paused) {
+      // physics
+      const next = rk4(theta, omega, simDt);
+      theta = next.th; omega = next.om;
+
+      // measurement generation
+      measTimer += simDt;
+      const measInterval = 1 / measRate;
+      while (measTimer >= measInterval) {
+        measTimer -= measInterval;
+        const z = theta + noiseStd * randn();
+        points.push({ theta: z, age: 0 });
+        measCount++;
+        measCountSpan.textContent = measCount;
+      }
+
+      // age & cull old points
+      for (let i = points.length - 1; i >= 0; i--) {
+        points[i].age += simDt;
+        if (points[i].age > ptLife) points.splice(i, 1);
+      }
+    }
+
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- initial UI display ---------- */
+  noiseVal.textContent = noiseStd.toFixed(2);
+  stdDevVal.textContent = noiseStd.toFixed(2);
+  measRateVal.textContent = measRate;
+  ptLifeVal.textContent = ptLife;
+  pauseBtn.textContent = 'Pause';
+
+  requestAnimationFrame(loop);
+})();
+    </script>
+    <!-- ==================================================================== -->
     <!-- Add KaTeX JS -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/contrib/auto-render.min.js"></script>
     <script>
         // Wait for the page to load before rendering math
         document.addEventListener("DOMContentLoaded", function() {
@@ -238,355 +493,280 @@
             });
         });
 
-        // Global variables
-        let length = 1.0;
-        let gravity = 9.8;
-        let angle = 30;
-        let damping = 0.02;
-        
-        let theta = angle * Math.PI / 180;
-        let omega = 0;
-        let time = 0;
-        
-        let isPaused = false;
-        let noiseLevel = 0.1;
-        let measurementRate = 5; // measurements per second
-        let pointLifetime = 3; // seconds
-        let lastMeasurementTime = 0;
-        let measurementCount = 0;
-        
-        // Measurement points array: {x, y, time, opacity}
-        let measurementPoints = [];
-        
-        // Get canvas and its context
-        const canvas = document.getElementById('pendulumCanvas');
-        const ctx = canvas.getContext('2d');
-        const simulationArea = document.getElementById('simulationArea');
-        
-        // Adjust canvas size
-        function resizeCanvas() {
-            const rect = simulationArea.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        // Update slider values and display
-        document.getElementById('noiseSlider').addEventListener('input', function() {
-            noiseLevel = parseFloat(this.value);
-            document.getElementById('noiseValue').textContent = noiseLevel.toFixed(2);
-            document.getElementById('stdDevValue').textContent = Math.sqrt(noiseLevel).toFixed(2);
-        });
-        
-        document.getElementById('measurementRateSlider').addEventListener('input', function() {
-            measurementRate = parseInt(this.value);
-            document.getElementById('measurementRateValue').textContent = measurementRate;
-        });
-        
-        document.getElementById('pointLifetimeSlider').addEventListener('input', function() {
-            pointLifetime = parseFloat(this.value);
-            document.getElementById('pointLifetimeValue').textContent = pointLifetime;
-        });
-        
-        document.getElementById('resetButton').addEventListener('click', function() {
-            theta = angle * Math.PI / 180;
-            omega = 0;
-            time = 0;
-            lastMeasurementTime = 0;
-        });
-        
-        document.getElementById('pauseButton').addEventListener('click', function() {
-            isPaused = !isPaused;
-            this.textContent = isPaused ? 'Resume' : 'Pause';
-        });
-        
-        document.getElementById('clearPointsButton').addEventListener('click', function() {
-            measurementPoints = [];
-            measurementCount = 0;
-            document.getElementById('measurementCount').textContent = measurementCount;
-        });
-        
-        // Add noisy measurement point
-        function addMeasurementPoint() {
-            const originX = canvas.width / 2;
-            const originY = canvas.height / 3;
-            const scale = 100;
+        // Kalman filter simulation with error covariance
+        (function(){
+            const g = 9.8, L = 1.0, d = 0.02;
+            let trueTheta = 0.5, trueOmega = 0;
+            let predTheta = 0.5, predOmega = 0;
+            let time = 0, paused = true, dt = 0.05;
+            
+            // Error covariance matrix P and process noise Q
+            let P = [[0.01, 0], [0, 0.01]]; // Initial P (uncertainty)
+            let Q = [[0.001, 0], [0, 0.001]]; // Process noise
+            let initialP = 0.01;
+            let processNoise = 0.001;
 
-            // Apply noise only to the angle (theta)
-            const noisyTheta = theta + gaussianRandom(0, noiseLevel);
+            const canvas = document.getElementById('predictCanvas');
+            const ctx = canvas.getContext('2d');
 
-            const measX = originX + length * scale * Math.sin(noisyTheta);
-            const measY = originY + length * scale * Math.cos(noisyTheta);
+            function resizeCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
 
-            measurementPoints.push({
-                x: measX,
-                y: measY,
-                time: time,
-                opacity: 1.0
+            document.getElementById('dtSlider').addEventListener('input', function() {
+                dt = parseFloat(this.value);
+                document.getElementById('dtValue').textContent = dt.toFixed(2);
             });
 
-            measurementCount++;
-            document.getElementById('measurementCount').textContent = measurementCount;
-        }
-        
-        // Gaussian random number generator
-        function gaussianRandom(mean=0, stdev=1) {
-            const u = 1 - Math.random();
-            const v = Math.random();
-            const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-            return z * Math.sqrt(stdev) + mean;
-        }
-        
-        // Update the pendulum simulation
-        function updateSimulation(dt) {
-            if (isPaused) return;
-            
-            // Implement Runge-Kutta 4th order method
-            function derivatives(t, th, om) {
+            document.getElementById('initialPSlider').addEventListener('input', function() {
+                initialP = parseFloat(this.value);
+                document.getElementById('initialPValue').textContent = initialP.toFixed(3);
+                resetCovariance();
+            });
+
+            document.getElementById('qSlider').addEventListener('input', function() {
+                processNoise = parseFloat(this.value);
+                document.getElementById('qValue').textContent = processNoise.toFixed(4);
+                Q = [[processNoise, 0], [0, processNoise]];
+            });
+
+            document.getElementById('resetPredictButton').addEventListener('click', function() {
+                trueTheta = 0.5; trueOmega = 0;
+                predTheta = 0.5; predOmega = 0;
+                time = 0; paused = true;
+                resetCovariance();
+                updateUncertaintyDisplay();
+                document.getElementById('pausePredictButton').textContent = 'Start';
+            });
+
+            document.getElementById('pausePredictButton').addEventListener('click', function() {
+                paused = !paused;
+                this.textContent = paused ? 'Start' : 'Pause';
+            });
+
+            function resetCovariance() {
+                P = [[initialP, 0], [0, initialP]];
+                Q = [[processNoise, 0], [0, processNoise]];
+            }
+
+            function updateUncertaintyDisplay() {
+                document.getElementById('angleUncertainty').textContent = Math.sqrt(P[0][0]).toFixed(3);
+                document.getElementById('velocityUncertainty').textContent = Math.sqrt(P[1][1]).toFixed(3);
+            }
+
+            function matrixMultiply(A, B) {
+                const result = [[0, 0], [0, 0]];
+                for (let i = 0; i < 2; i++) {
+                    for (let j = 0; j < 2; j++) {
+                        for (let k = 0; k < 2; k++) {
+                            result[i][j] += A[i][k] * B[k][j];
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function matrixTranspose(A) {
+                return [[A[0][0], A[1][0]], [A[0][1], A[1][1]]];
+            }
+
+            function matrixAdd(A, B) {
+                return [
+                    [A[0][0] + B[0][0], A[0][1] + B[0][1]],
+                    [A[1][0] + B[1][0], A[1][1] + B[1][1]]
+                ];
+            }
+
+            function rk4(th, om, dt) {
+                function f(th, om) {
+                    return {
+                        dth: om,
+                        dom: -g/L * Math.sin(th) - d * om
+                    };
+                }
+                const k1 = f(th, om);
+                const k2 = f(th + dt/2*k1.dth, om + dt/2*k1.dom);
+                const k3 = f(th + dt/2*k2.dth, om + dt/2*k2.dom);
+                const k4 = f(th + dt*k3.dth, om + dt*k3.dom);
                 return {
-                    dTheta: om,
-                    dOmega: -gravity / length * Math.sin(th) - damping * om
+                    th: th + dt/6*(k1.dth + 2*k2.dth + 2*k3.dth + k4.dth),
+                    om: om + dt/6*(k1.dom + 2*k2.dom + 2*k3.dom + k4.dom)
                 };
             }
-            
-            const k1 = derivatives(time, theta, omega);
-            const k2 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k1.dTheta, 
-                omega + dt/2 * k1.dOmega
-            );
-            const k3 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k2.dTheta, 
-                omega + dt/2 * k2.dOmega
-            );
-            const k4 = derivatives(
-                time + dt, 
-                theta + dt * k3.dTheta, 
-                omega + dt * k3.dOmega
-            );
-            
-            theta += dt * (k1.dTheta + 2*k2.dTheta + 2*k3.dTheta + k4.dTheta) / 6;
-            omega += dt * (k1.dOmega + 2*k2.dOmega + 2*k3.dOmega + k4.dOmega) / 6;
-            time += dt;
-            
-            // Add measurement points at specified rate
-            if (time - lastMeasurementTime > 1/measurementRate) {
-                addMeasurementPoint();
-                lastMeasurementTime = time;
+
+            function getSystemMatrix(dt) {
+                // Linearized system matrix Ad for pendulum
+                return [
+                    [1, dt],
+                    [-g/L*dt, 1 - d*dt]
+                ];
             }
-            
-            // Update measurement points opacity based on lifetime
-            measurementPoints.forEach(point => {
-                point.opacity = 1 - (time - point.time) / pointLifetime;
-            });
-            
-            // Remove old points
-            measurementPoints = measurementPoints.filter(point => (time - point.time) < pointLifetime);
-        }
-        
-        // Draw the pendulum and measurement points
-        function drawPendulum() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Calculate positions
-            const originX = canvas.width / 2;
-            const originY = canvas.height / 3;
-            const scale = 100;
-            const bobX = originX + length * scale * Math.sin(theta);
-            const bobY = originY + length * scale * Math.cos(theta);
-            
-            // Draw measurement points first (so pendulum appears on top)
-            measurementPoints.forEach(point => {
+
+            function predict(th, om, dt) {
+                const A = getSystemMatrix(dt);
+                return {
+                    th: A[0][0]*th + A[0][1]*om,
+                    om: A[1][0]*th + A[1][1]*om
+                };
+            }
+
+            function updateErrorCovariance(dt) {
+                const A = getSystemMatrix(dt);
+                const At = matrixTranspose(A);
+                const AP = matrixMultiply(A, P);
+                const APAt = matrixMultiply(AP, At);
+                P = matrixAdd(APAt, Q);
+                updateUncertaintyDisplay();
+            }
+
+            function drawCovarianceEllipse(x, y, P, scale) {
+                // Extract eigenvalues and eigenvectors of P
+                const a = P[0][0], b = P[0][1], c = P[1][1];
+                const trace = a + c;
+                const det = a * c - b * b;
+                
+                let lambda1 = trace/2 + Math.sqrt((trace*trace)/4 - det);
+                let lambda2 = trace/2 - Math.sqrt((trace*trace)/4 - det);
+                
+                // Calculate eigenvectors
+                let eigenvector1, eigenvector2;
+                if (Math.abs(b) < 1e-6) {
+                    eigenvector1 = [1, 0];
+                    eigenvector2 = [0, 1];
+                } else {
+                    eigenvector1 = [lambda1 - c, b];
+                    eigenvector2 = [lambda2 - c, b];
+                    
+                    // Normalize eigenvectors
+                    const len1 = Math.sqrt(eigenvector1[0]*eigenvector1[0] + eigenvector1[1]*eigenvector1[1]);
+                    const len2 = Math.sqrt(eigenvector2[0]*eigenvector2[0] + eigenvector2[1]*eigenvector2[1]);
+                    
+                    eigenvector1 = [eigenvector1[0]/len1, eigenvector1[1]/len1];
+                    eigenvector2 = [eigenvector2[0]/len2, eigenvector2[1]/len2];
+                }
+                
+                // Scale eigenvalues for visualization (95% confidence interval)
+                const scaleFactor = 2.447; // 95% confidence for 2D
+                const radius1 = Math.sqrt(lambda1) * scaleFactor;
+                const radius2 = Math.sqrt(lambda2) * scaleFactor;
+                
+                // Draw ellipse using parametric equation
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = `rgba(75, 192, 192, ${point.opacity})`;
+                for (let angle = 0; angle <= 2 * Math.PI; angle += 0.1) {
+                    const ex = radius1 * Math.cos(angle);
+                    const ey = radius2 * Math.sin(angle);
+                    
+                    // Rotate ellipse according to eigenvectors
+                    const rotX = ex * eigenvector1[0] + ey * eigenvector2[0];
+                    const rotY = ex * eigenvector1[1] + ey * eigenvector2[1];
+                    
+                    // Scale to screen coordinates and translate to state position
+                    const px = x + rotX * scale;
+                    const py = y + rotY * scale;
+                    
+                    if (angle === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(75, 139, 185, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(75, 139, 185, 0.1)';
                 ctx.fill();
-            });
-            
-            // Draw the rod
-            ctx.beginPath();
-            ctx.moveTo(originX, originY);
-            ctx.lineTo(bobX, bobY);
-            ctx.strokeStyle = '#414f63';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw pivot point
-            ctx.beginPath();
-            ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = '#414f63';
-            ctx.fill();
-            
-            // Draw the bob
-            ctx.beginPath();
-            ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
-            ctx.fillStyle = '#f05454';
-            ctx.fill();
-            ctx.strokeStyle = '#e63946';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw reference line
-            ctx.beginPath();
-            ctx.moveTo(originX, originY);
-            ctx.lineTo(originX, originY + length * scale);
-            ctx.strokeStyle = '#c4c9d1';
-            ctx.setLineDash([5, 3]);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Display current angle
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#414f63';
-            ctx.textAlign = 'right';
-            const currentAngle = (theta * 180 / Math.PI).toFixed(1);
-            ctx.fillText('Angle: ' + currentAngle + '°', canvas.width - 20, 30);
-        }
-        
-        // Animation loop
-        let lastTime = 0;
-        
-        function animate(currentTime) {
-            if (!lastTime) lastTime = currentTime;
-            const deltaTime = (currentTime - lastTime) / 1000;
-            lastTime = currentTime;
-            
-            updateSimulation(Math.min(deltaTime, 0.02));
-            drawPendulum();
-            
-            requestAnimationFrame(animate);
-        }
-        
-        // Initialize
-        document.getElementById('stdDevValue').textContent = Math.sqrt(noiseLevel).toFixed(2);
-        requestAnimationFrame(animate);
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const ox = canvas.width / 2;
+                const oy = canvas.height / 3;
+                const scale = 100;
+
+                // Reference line
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(ox, oy + scale * L);
+                ctx.strokeStyle = '#c4c9d1';
+                ctx.setLineDash([5,3]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // True pendulum (red)
+                if (trueTheta !== null) {
+                    const x1 = ox + scale*L*Math.sin(trueTheta);
+                    const y1 = oy + scale*L*Math.cos(trueTheta);
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(x1, y1);
+                    ctx.strokeStyle = '#f05454';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(x1, y1, 12, 0, Math.PI*2);
+                    ctx.fillStyle = '#f05454';
+                    ctx.fill();
+                }
+
+                // Predicted pendulum (blue)
+                if (predTheta !== null) {
+                    const x2 = ox + scale*L*Math.sin(predTheta);
+                    const y2 = oy + scale*L*Math.cos(predTheta);
+                    
+                    // Draw covariance ellipse around predicted position
+                    drawCovarianceEllipse(x2, y2, P, scale);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = '#4b8bb9';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(x2, y2, 10, 0, Math.PI*2);
+                    ctx.fillStyle = '#4b8bb9';
+                    ctx.fill();
+                }
+                
+                // Show time
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Time: ${time.toFixed(1)}s`, 20, 30);
+            }
+
+            function step() {
+                if (!paused) {
+                    // Update true pendulum with RK4 (non-linear)
+                    const t = rk4(trueTheta, trueOmega, dt);
+                    trueTheta = t.th; 
+                    trueOmega = t.om;
+                    
+                    // Update predicted pendulum with linearized model
+                    const p = predict(predTheta, predOmega, dt);
+                    predTheta = p.th; 
+                    predOmega = p.om;
+                    
+                    // Update error covariance
+                    updateErrorCovariance(dt);
+                    
+                    time += dt;
+                }
+                draw();
+                requestAnimationFrame(step);
+            }
+
+            // Initialize
+            resetCovariance();
+            updateUncertaintyDisplay();
+            step();
+        })();
     </script>
-    <script>
-(function(){
-    const g = 9.8, L = 1.0, d = 0.02;
-    let trueTheta = 0.5, trueOmega = 0;
-    let predTheta = 0.5, predOmega = 0;
-    let time = 0, paused = true, dt = 0.05;
-
-    const canvas = document.getElementById('predictCanvas');
-    const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    document.getElementById('dtSlider').addEventListener('input', function() {
-        dt = parseFloat(this.value);
-        document.getElementById('dtValue').textContent = dt.toFixed(2);
-    });
-
-    document.getElementById('resetPredictButton').addEventListener('click', function() {
-        trueTheta = 0.5; trueOmega = 0;
-        predTheta = 0.5; predOmega = 0;
-        time = 0; paused = true;
-        document.getElementById('pausePredictButton').textContent = 'Start';
-    });
-
-    document.getElementById('pausePredictButton').addEventListener('click', function() {
-        paused = !paused;
-        this.textContent = paused ? 'Start' : 'Pause';
-    });
-
-    function rk4(th, om, dt) {
-        function f(th, om) {
-            return {
-                dth: om,
-                dom: -g/L * Math.sin(th) - d * om
-            };
-        }
-        const k1 = f(th, om);
-        const k2 = f(th + dt/2*k1.dth, om + dt/2*k1.dom);
-        const k3 = f(th + dt/2*k2.dth, om + dt/2*k2.dom);
-        const k4 = f(th + dt*k3.dth, om + dt*k3.dom);
-        return {
-            th: th + dt/6*(k1.dth + 2*k2.dth + 2*k3.dth + k4.dth),
-            om: om + dt/6*(k1.dom + 2*k2.dom + 2*k3.dom + k4.dom)
-        };
-    }
-
-    function predict(th, om, dt) {
-        const A = [
-            [1, dt],
-            [-g/L*dt, 1 - d*dt]
-        ];
-        return {
-            th: A[0][0]*th + A[0][1]*om,
-            om: A[1][0]*th + A[1][1]*om
-        };
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const ox = canvas.width / 2;
-        const oy = canvas.height / 3;
-        const scale = 100;
-
-        // Reference line
-        ctx.beginPath();
-        ctx.moveTo(ox, oy);
-        ctx.lineTo(ox, oy + scale * L);
-        ctx.strokeStyle = '#c4c9d1';
-        ctx.setLineDash([5,3]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        if (trueTheta !== null) {
-            const x1 = ox + scale*L*Math.sin(trueTheta);
-            const y1 = oy + scale*L*Math.cos(trueTheta);
-            ctx.beginPath();
-            ctx.moveTo(ox, oy);
-            ctx.lineTo(x1, y1);
-            ctx.strokeStyle = '#f05454';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(x1, y1, 12, 0, Math.PI*2);
-            ctx.fillStyle = '#f05454';
-            ctx.fill();
-        }
-
-        if (predTheta !== null) {
-            const x2 = ox + scale*L*Math.sin(predTheta);
-            const y2 = oy + scale*L*Math.cos(predTheta);
-            ctx.beginPath();
-            ctx.moveTo(ox, oy);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = '#4b8bb9';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(x2, y2, 10, 0, Math.PI*2);
-            ctx.fillStyle = '#4b8bb9';
-            ctx.fill();
-        }
-    }
-
-    function step() {
-        if (!paused) {
-            const t = rk4(trueTheta, trueOmega, dt);
-            const p = predict(predTheta, predOmega, dt);
-            trueTheta = t.th; trueOmega = t.om;
-            predTheta = p.th; predOmega = p.om;
-            time += dt;
-        }
-        draw();
-        requestAnimationFrame(step);
-    }
-
-    step();
-})();
-    </script>
+      
 </body>
 </html>
