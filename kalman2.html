@@ -33,6 +33,11 @@
         font-size: 1rem;
         color: #ffffff;
       }
+      /* Add rule so the linked header text stays white */
+      .header-title, .header-title h1, .header-title p {
+          color: white;
+          text-decoration: none;
+      }
       .logo {
         max-height: 80px;
       }
@@ -51,11 +56,15 @@
 <body>
     <header>
       <div class="header-flex">
-        <div class="header-title">
-          <h1>Kalman Filter – Measurement Noise</h1>
-          <p>Interactive algorithm learning with a pendulum simulation</p>
-        </div>
-        <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        <!-- Wrap header text in a link -->
+        <a href="index.html" class="header-title">
+            <h1>Kalman Filter – Measurement Noise</h1>
+            <p>Interactive algorithm learning with a pendulum simulation</p>
+        </a>
+        <!-- Wrap logo image in a link -->
+        <a href="index.html">
+            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        </a>
       </div>
     </header>
 
@@ -78,7 +87,7 @@
             <p>Where:</p>
             <ul>
                 <li><strong>z<sub>t</sub></strong> – measurement at time t</li>
-                <li><strong>θ<sub>t</sub></strong> – true angle at time t</li>
+                <li><strong>θ<sub>t</sub> – true angle at time t</strong></li>
                 <li><strong>v<sub>t</sub></strong> – measurement noise ~ N(0, R)</li>
                 <li><strong>R</strong> – noise variance (intensity)</li>
             </ul>
@@ -142,8 +151,7 @@
         <section class="section">
             <h2>State Vector &amp; Predict Step</h2>
             <p>The first building‑block of the Kalman filter is deciding <em>what</em> we are going to estimate.  
-                For the pendulum we use a two‑dimensional state vector:</p>
-
+               For the pendulum we use a two‑dimensional state vector:</p>
             <div class="math-block">
                 \[
                     x =
@@ -153,35 +161,56 @@
                     \end{bmatrix}
                 \]
             </div>
-
             <ul>
                 <li><strong>θ (rad)</strong> – the current angle measured from the vertical.</li>
                 <li><strong>θ̇ (rad/s)</strong> – the angular velocity.</li>
             </ul>
-
-            <h3>Predicting the next state</h3>
-            <p>Between measurements the pendulum follows Newton's laws, so we can <em>predict</em> its
-                state a small time Δt later with the continuous‑time model\(^†\):</p>
-
+            <!-- Merged explanation about the predict step -->
+            <h3>Predicting the Next State: Linearization and Discretization</h3>
+            <p>To predict the pendulum's state, we start with its non‑linear continuous model:</p>
             <div class="math-block">
                 \[
-                    x(t+\Delta t) \approx
-                    \left(
-                    I + \Delta t \cdot
-                    \begin{bmatrix}
-                        0 & 1 \\
-                        -\dfrac{g}{L} & -d
-                    \end{bmatrix}
-                    \right) x(t)
-                    \;=\; A_d\,x(t)
+                    \ddot{\theta} + \frac{g}{L}\sin(\theta) = 0
                 \]
             </div>
-
-            <p>This is the <strong>Predict Step</strong>: it gives us a best guess on how we expect the system to evolve.</p>
-
+            <p>For small angles around the equilibrium, we approximate \(\sin(\theta) \approx \theta\) and include damping to obtain:</p>
             <div class="math-block">
                 \[
-                    x_{k} \;=\; A_d\,x_{k-1}
+                    \ddot{\theta} + d\,\dot{\theta} + \frac{g}{L}\theta = 0
+                \]
+            </div>
+            <!-- Inserted calculation for derivation -->
+            <p>By defining the state vector \(x = \begin{bmatrix}\theta \\ \dot{\theta}\end{bmatrix}\), we convert the second‑order differential equation into two first‑order equations:</p>
+            <div class="math-block">
+                \[
+                    \begin{aligned}
+                    \dot{\theta} &= \dot{\theta},\\[6pt]
+                    \ddot{\theta} &= -\frac{g}{L}\theta - d\,\dot{\theta}.
+                    \end{aligned}
+                \]
+            </div>
+            <p>This system can then be written in matrix form as:</p>
+            <div class="math-block">
+                \[
+                \begin{bmatrix}\dot{\theta}\\ \ddot{\theta}\end{bmatrix}\ = \dot{x}(t) = A_c\, x(t) \quad \text{with} \quad A_c = \begin{bmatrix} 0 & 1 \\ -\frac{g}{L} & -d \end{bmatrix}
+                \]
+            </div>
+            <p>Since the Kalman Filter operates in discrete time, we approximate the state at time \(t+\Delta t\) as:</p>
+            <div class="math-block">
+                \[
+                    x(t + \Delta t) \approx x(t) + A_c\,x(t)\Delta t = (I + A_c \Delta t)x(t)
+                \]
+            </div>
+            <p>This gives the discrete‑time system matrix:</p>
+            <div class="math-block">
+                \[
+                    A_d \approx I + A_c \Delta t = \begin{bmatrix} 1 & \Delta t \\ -\frac{g}{L}\Delta t & 1 - d\,\Delta t \end{bmatrix}
+                \]
+            </div>
+            <p>The Predict Step is then performed as:</p>
+            <div class="math-block">
+                \[
+                    x_k = A_d\,x_{k-1}
                 \]
             </div>
 

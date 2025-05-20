@@ -869,4 +869,9 @@ textarea.form-control {
         font-size: 2rem;
     }
 }
+
+/* Additional Styles */
+.header-text, .header-text h1, .header-text p {
+    color: white;
+    text-decoration: none;
 }

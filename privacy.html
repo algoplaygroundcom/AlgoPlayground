@@ -258,6 +258,12 @@
             color: #c4c9d1;
         }
 
+        /* Add this rule to keep header title white */
+        .header-text, .header-text h1, .header-text p {
+            color: white;
+            text-decoration: none;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .page-title h1 {
@@ -281,11 +287,15 @@
 <body>
     <header>
         <div class="container header-flex">
-            <div class="container">
+            <!-- Wrap header text in a link -->
+            <a href="index.html" class="header-text">
                 <h1>AlgoPlayground</h1>
                 <p>Interactive Journey to Master Algorithms</p>
-            </div>
-            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+            </a>
+            <!-- Wrap logo image in a link -->
+            <a href="index.html">
+                <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+            </a>
         </div>
     </header>
 
@@ -385,8 +395,7 @@
                 <p>We may disclose your personal information for any other purpose with your consent.</p>
                 
                 <h2 id="cookies">5. Cookies and Similar Technologies</h2>
-                <p>We use cookies and similar tracking technologies to track activity on our website and hold certain<!-- המשך לקובץ privacy policy -->
-                    information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, some parts of our website may not function properly.
+                <p>We use cookies and similar tracking technologies to track activity on our website and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, some parts of our website may not function properly.
     
                     <h2 id="security">6. Data Security</h2>
                     <p>We implement appropriate technical and organizational security measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction. Despite our efforts, no method of transmission over the internet or method of electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
@@ -429,4 +438,3 @@
         </footer>
     </body>
     </html>
-    

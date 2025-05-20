@@ -41,6 +41,18 @@
             margin: 0 auto;
         }
 
+        .header-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Ensure header title remains white */
+        .header-text, .header-text h1, .header-text p {
+            color: white;
+            text-decoration: none;
+        }
+
         .page-title {
             padding: 2rem 0;
             background-color: var(--light-accent);
@@ -160,83 +172,6 @@
             background-color: var(--primary-color);
         }
 
-        .contact-form {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .contact-form h2 {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            color: var(--secondary-color);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        textarea.form-control {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(240, 84, 84, 0.2);
-        }
-
-        .submit-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .submit-btn:hover {
-            background-color: var(--highlight-color);
-        }
-
-        .map-section {
-            padding: 2rem 0 4rem;
-        }
-
-        .map-container {
-            height: 400px;
-            background-color: #eee;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .map-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--light-accent);
-            color: var(--secondary-color);
-            font-size: 1.2rem;
-        }
-
         /* FAQ Section */
         .faq-section {
             padding: 4rem 0;
@@ -335,6 +270,19 @@
             color: #c4c9d1;
         }
 
+        /* Adjust logo size */
+        .logo {
+            max-height: 80px;
+        }
+        /* Override header link styles so text stays white */
+        .header-text {
+            text-decoration: none;
+        }
+        .header-text h1,
+        .header-text p {
+            color: white;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .contact-container {
@@ -349,9 +297,16 @@
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>AlgoPlayground</h1>
-            <p>Interactive Journey to Master Algorithms</p>
+        <div class="container header-flex">
+            <!-- Wrap header text in a link -->
+            <a href="index.html" class="header-text">
+                <h1>AlgoPlayground</h1>
+                <p>Interactive Journey to Master Algorithms</p>
+            </a>
+            <!-- Wrap logo image in a link -->
+            <a href="index.html">
+                <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+            </a>
         </div>
     </header>
 
@@ -370,9 +325,9 @@
             <div class="contact-container">
                 <div class="contact-info">
                     <h2>Contact Us</h2>
-                    <p>Have questions, feedback, or suggestions? We'd love to hear from you! You can reach out to us via email.</p>
+                    <p>Have questions, feedback, or suggestions? We'd love to hear from you! Please contact us via email.</p>
                     
-                   <div class="contact-card">
+                    <div class="contact-card">
                         <h3>Contact Information</h3>
                         <div class="contact-item">
                             <div class="contact-icon">E</div>
@@ -387,53 +342,6 @@
  <a href="https://github.com/algoplaygroundcom/AlgoPlayground" title="GitHub">G</a>
                     </div>
                 </div>
-                
-                <div class="contact-form">
-                    <h2>Send Us a Message</h2>
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Your Name</label>
-                            <input type="text" id="name" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="subject">Subject</label>
-                            <input type="text" id="subject" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="message">Your Message</label>
-                            <textarea id="message" class="form-control" required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="submit-btn">Send Message</button>
-                    </form>
-                    <!-- 
-                        To make this form functional, you will need to set up a backend endpoint
-                        to receive the form data. 
-
-                        1.  Replace the `action="#"` in the `<form>` tag with the URL of your backend endpoint.
-                        2.  The backend should handle receiving POST requests to this endpoint.
-                        3.  Parse the form data (name, email, subject, message).
-                        4.  Process the data (e.g., send an email, save to a database).
-                        5.  Send a response back to the user (e.g., a success message, an error).
-                     -->
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="map-section">
-        <div class="container">
-            <div class="map-container">
-                <div class="map-placeholder">
-                    <p>[Google Map will be displayed here]</p>
-                </div>
             </div>
         </div>
     </section>
@@ -445,7 +353,7 @@
             <div class="faq-item active">
                 <div class="faq-question">How can I suggest a new algorithm tutorial?</div>
                 <div class="faq-answer">
-                    <p>We welcome suggestions for new algorithm tutorials! Please use the contact form above and select "Tutorial Suggestion" as the subject. Include as much detail as possible about the algorithm you'd like us to cover, and why you think it would be valuable to our community.</p>
+                    <p>We welcome suggestions for new algorithm tutorials! Please email us at <a href="mailto:info@algoplayground.com">info@algoplayground.com</a> with "Tutorial Suggestion" as the subject. Include as much detail as possible about the algorithm you'd like us to cover and why you think it would be valuable to our community.</p>
                 </div>
             </div>
             
@@ -502,13 +410,6 @@
                 const item = question.parentNode;
                 item.classList.toggle('active');
             });
-        });
-
-        // Form submission prevention (for demo)
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for your message! This is a demo form, so no actual message was sent.');
-            this.reset();
         });
     </script>
 </body>

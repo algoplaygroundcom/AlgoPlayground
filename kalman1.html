@@ -37,6 +37,12 @@
       font-size: 1rem;
       color: #ffffff;
     }
+    /* Add rule to ensure linked header text remains white */
+    .header-title, .header-title h1, .header-title p {
+        color: white;
+        text-decoration: none;
+    }
+
     .logo {
       max-height: 80px;
     }
@@ -44,11 +50,15 @@
 <body>
     <header>
       <div class="header-flex">
-        <div class="header-title">
-          <h1>Kalman Filter Playground</h1>
-          <p>Learn algorithmic concepts through interactive pendulum simulation</p>
-        </div>
-        <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        <!-- Wrap header text in a link -->
+        <a href="index.html" class="header-title">
+            <h1>Kalman Filter Playground</h1>
+            <p>Learn algorithmic concepts through interactive pendulum simulation</p>
+        </a>
+        <!-- Wrap logo image in a link -->
+        <a href="index.html">
+            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        </a>
       </div>
     </header>
 

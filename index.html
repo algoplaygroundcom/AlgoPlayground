@@ -41,6 +41,12 @@
             margin: 0 auto;
         }
 
+        /* Add rule to override link color in header */
+        .header-text, .header-text h1, .header-text p {
+            color: white;
+            text-decoration: none;
+        }
+
         /* Hero Section - REDESIGNED */
         .hero {
             display: flex;
@@ -432,9 +438,12 @@
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>AlgoPlayground</h1>
-            <p>Interactive Journey to Master Algorithms</p>
+        <div class="container header-flex">
+            <!-- Wrap header text in a link -->
+            <a href="index.html" class="header-text">
+                <h1>AlgoPlayground</h1>
+                <p>Interactive Journey to Master Algorithms</p>
+            </a>
         </div>
     </header>
 
