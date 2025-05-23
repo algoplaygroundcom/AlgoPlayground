@@ -140,6 +140,17 @@
                             <div class="metric-value"><span id="measurementCount">0</span></div>
                         </div>
                     </div>
+                </div>  <!-- end of controls -->
+                <!-- NEW: Add legend for kalman2 animation -->
+                <div class="legend" style="text-align: center; margin-top: 10px;">
+                    <span style="display: inline-block; margin-right: 20px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background-color: #f05454; border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">True Pendulum</span>
+                    </span>
+                    <span style="display: inline-block;">
+                        <span style="display: inline-block; width: 8px; height: 8px; background-color: rgba(75,139,185,0.8); border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">Noisy Measurement</span>
+                    </span>
                 </div>
             </div>
             
@@ -309,7 +320,6 @@
             <p class="highlight"><strong>Take‑away:</strong> Neither the physical model nor the measurements alone are sufficient:
                 the model is only an approximation, and the measurements are noisy and delayed.
                 The Kalman Filter combines both sources of information — dynamics and data — to produce the best possible estimate of the system's state by tracking and minimizing uncertainty.</p>
-            <p style="font-size:0.8em">† Linearised around small angles for clarity; the live simulation uses the full non‑linear equations.</p>
         </section>
         <div class="nav-buttons">
             <button onclick="window.location.href='kalman1.html'">← Previous</button>

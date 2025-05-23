@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalman Filter – The Update Step</title>
+    <!-- Add KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Change simulation area height to match kalman2 */
+        #simulationArea {
+            height: 400px; /* previously 500px */
+            position: relative;
+        }
+        #pendulumCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            width: 90%;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .header-title p {
+            margin: 0;
+            font-size: 1rem;
+            color: #ffffff;
+        }
+        /* Add rule so the linked header text stays white */
+        .header-title, .header-title h1, .header-title p {
+            color: white;
+            text-decoration: none;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-flex">
+        <!-- Wrap header text in a link -->
+        <a href="index.html" class="header-title">
+            <h1>Kalman Filter – The Update Step</h1>
+            <p>Interactive algorithm learning with a pendulum simulation</p>
+        </a>
+        <!-- Wrap logo image in a link -->
+        <a href="index.html">
+            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        </a>
+    </div>
+</header>
+
+<div class="container">
+    <section class="section">
+        <h2>The Update Step: Fusing Prediction and Measurement</h2>
+        <p>The Kalman Filter's update step combines the prediction from the model with a noisy measurement to produce an improved estimate of the system's state.</p>
+
+        <div class="highlight">
+            <p><strong>Core Idea:</strong> Determine how much to trust the prediction from the model versus the measurement, based on their expected errors.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Measurement Model</h2>
+        <p>The measurement is modeled as a multiplication by the observation matrix \( H \), with added measurement noise:</p>
+        <div class="math-block">
+            \[ z = H x + v \]
+        </div>
+        <p>Where:</p>
+        <ul>
+            <li>\( z \) is the measurement.</li>
+            <li>\( H \) is the observation matrix.</li>
+            <li>\( x \) is the true state.</li>
+            <li>\( v \) is the measurement noise.</li>
+        </ul>
+        <p>In our case, we are directly measuring the angle, so \( H = \begin{bmatrix} 1 & 0 \end{bmatrix} \).</p>
+        <p>This models the real-world sensor process, where the sensor provides a noisy reading of the true state.</p>
+    </section>
+
+    <section class="section">
+        <h2>Building the Kalman Gain and Update Step</h2>
+        <p>The core idea is to determine what we trust more — the prediction from the model or the measurement. We compare each using their expected errors, aiming to find an optimal balance.</p>
+
+        <h3>Innovation</h3>
+        <p>The innovation is the difference between the measurement \( z \) and the predicted measurement \( H x_{prior} \):</p>
+        <div class="math-block">
+            \[ \tilde{y} = z - H x_{prior} \]
+        </div>
+        <p>This represents the discrepancy between what we observed and what we expected based on our model.</p>
+
+        <section class="section">
+            <h2>Interactive Animation 1: Innovation Visualization with a Pendulum</h2>
+            <p>See how measurements differ from the model's predicted state, and how this discrepancy (innovation) is affected by measurement noise.</p>
+
+            <div class="simulation-container">
+                <div class="canvas-container" id="simulationArea">
+                    <canvas id="pendulumCanvas"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="slider-container">
+                        <label for="measurementNoiseSlider">Measurement Noise (R):</label>
+                        <span class="value-display" id="measurementNoiseValue">0.1</span>
+                        <input type="range" id="measurementNoiseSlider" min="0.01" max="0.33" step="0.01" value="0.1">
+                    </div>
+
+                    <div class="button-container">
+                        <button id="playPauseButton">Play</button>
+                        <button id="resetButton">Reset</button> <!-- Added reset button -->
+                    </div>
+                </div>
+                <!-- Existing controls end -->
+                <!-- NEW: Add legend by the graph -->
+                <div class="legend" style="text-align: center; margin-top: 10px;">
+                    <span style="display: inline-block; margin-right: 20px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background-color: #f05454; border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">True Pendulum</span>
+                    </span>
+                    <span style="display: inline-block; margin-right: 20px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background-color: #4b8bb9; border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">Predicted Pendulum</span>
+                    </span>
+                    <span style="display: inline-block; margin-right: 20px;">
+                        <span style="display: inline-block; width: 8px; height: 8px; background-color: rgba(75,139,185,0.8); border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">Noisy Measurement</span>
+                    </span>
+                    <span style="display: inline-block;">
+                        <span style="display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 10px solid rgba(255,165,0,0.8);"></span>
+                        <span style="font-size: 0.9em;">Innovation</span>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <h3>Innovation Covariance</h3>
+        <p>To determine how significant this innovation is, we compare it to the expected uncertainty in the measurement. We begin with the prior error covariance \( P \), project it into the measurement space using \( H \) and \( H^\top \), and add the measurement noise covariance \( R \). This gives us the innovation covariance:</p>
+        <div class="math-block">
+            \[ S = H P H^\top + R \]
+        </div>
+        <p>To normalize the innovation, we invert \( S \).</p>
+
+        <h3>Kalman Gain</h3>
+        <p>The Kalman Gain is then constructed as:</p>
+        <div class="math-block">
+            \[ K = P H^\top S^{-1} \]
+        </div>
+        <p>It represents how much weight we give the innovation when updating our belief. If the gain is low, it means the model's prediction was more trustworthy. If the gain is high, it suggests that the observed discrepancy was larger than expected, meaning the model was likely inaccurate, and we should trust the measurement more.</p>
+
+        <h3>Update Step</h3>
+        <p>Finally, we apply the Kalman Gain to the innovation and add the result to the prior state estimate. This yields the updated state estimate:</p>
+        <div class="math-block">
+            \[ x_{posterior} = x_{prior} + K (z - H x_{prior}) \]
+        </div>
+    </section>
+
+    <!-- Add new Kalman Gain visualization section before nav-buttons -->
+    <section class="section">
+        <h2>Kalman Gain Visualization</h2>
+        <p>Experiment with measurement and model uncertainties to see how they affect the Kalman gain:</p>
+
+        <div class="simulation-container">
+            <div class="controls" style="flex: 0 0 200px;">
+                <div class="slider-container">
+                    <label for="measErrorSlider">Measurement Error (R):</label>
+                    <span class="value-display" id="measErrorValue">0.1</span>
+                    <input type="range" id="measErrorSlider" min="0.01" max="1" step="0.01" value="0.1">
+                </div>
+                
+                <div class="slider-container">
+                    <label for="modelErrorSlider">Model Error (Q):</label>
+                    <span class="value-display" id="modelErrorValue">0.1</span>
+                    <input type="range" id="modelErrorSlider" min="0.01" max="1" step="0.01" value="0.1">
+                </div>
+            </div>
+
+            <div style="flex: 1; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="color: #4b8bb9; font-weight: bold;">Trusting Model</div>
+                    <div style="color: #f05454; font-weight: bold;">Trusting Measurements</div>
+                </div>
+                
+                <div style="position: relative; height: 40px; background: #f0f2f5; border-radius: 20px; margin-bottom: 10px;">
+                    <div id="kalmanGainIndicator" style="position: absolute; width: 20px; height: 20px; background: #414f63; border-radius: 50%; top: 10px; left: 50%; transform: translateX(-50%); transition: left 0.3s;"></div>
+                </div>
+
+                <div style="text-align: center; font-size: 1.2em;">
+                    Kalman Gain (K) = <span id="kalmanGainValue">0.5</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add new summary sections before nav-buttons -->
+    <section class="section">
+        <h2>Summary</h2>
+        <p>We've covered the two fundamental components of the Kalman filter:</p>
+        <ol>
+            <li>The model prediction step, which uses our physical understanding to estimate future states</li>
+            <li>The measurement update step, which combines noisy sensor measurements with our predictions to improve our estimate</li>
+        </ol>
+        <p>The key insight is that by carefully balancing model predictions against measurements based on their respective uncertainties, we can achieve better estimates than using either source alone.</p>
+
+        <h3>What's Next?</h3>
+        <p>In the next section, we'll see the complete Kalman filter in action. We'll explore:</p>
+        <ol>
+            <li>How the filter converges under different noise conditions</li>
+            <li>The impact of model errors on filter performance</li>
+            <li>The trade-offs between trusting measurements versus model predictions</li>
+            <li>Real-world applications and implementation considerations</li>
+        </ol>
+    </section>
+
+    <div class="nav-buttons">
+        <button onclick="window.location.href='kalman2.html'">← Previous</button>
+        <button onclick="window.location.href='kalman4.html'">Next →</button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        // Canvas and context
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Simulation parameters
+        let measurementNoise = 0.1;
+        let isPlaying = false;
+
+        // Pendulum parameters
+        const g = 9.8; // gravity
+        const L = 1.0; // length
+        let trueAngle = Math.PI / 2; // initial angle
+        let trueAngularVelocity = 0; // initial angular velocity
+
+        // Model pendulum parameters
+        let modelAngle = Math.PI / 2 + 0.1; // initial angle
+        let modelAngularVelocity = 0; // initial angular velocity
+
+        // HTML elements
+        const measurementNoiseSlider = document.getElementById('measurementNoiseSlider');
+        const measurementNoiseValue = document.getElementById('measurementNoiseValue');
+        const playPauseButton = document.getElementById('playPauseButton');
+        const resetButton = document.getElementById('resetButton'); // Added reset button
+
+        // Measurement points array
+        let measurements = [];
+
+        // Update display values
+        measurementNoiseValue.textContent = measurementNoise.toFixed(2);
+
+        // Event listeners for sliders
+        measurementNoiseSlider.addEventListener('input', () => {
+            measurementNoise = parseFloat(measurementNoiseSlider.value);
+            measurementNoiseValue.textContent = measurementNoise.toFixed(2);
+        });
+
+        // Event listeners for buttons
+        playPauseButton.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            playPauseButton.textContent = isPlaying ? 'Pause' : 'Play';
+            if (isPlaying) {
+                requestAnimationFrame(simulate);
+            }
+        });
+
+        resetButton.addEventListener('click', () => { // Added reset button
+            trueAngle = Math.PI / 2;
+            trueAngularVelocity = 0;
+
+            modelAngle = Math.PI / 2 + 0.1;
+            modelAngularVelocity = 0;
+
+            measurements = [];
+        });
+
+        // Helper function for generating Gaussian random numbers
+        function gaussianRandom(mean = 0, stdev = 1) {
+            let u = 1 - Math.random();
+            let v = Math.random();
+            let rand = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            return rand * stdev + mean;
+        }
+
+        // Function to simulate the pendulum
+        function simulatePendulum(angle, angularVelocity, dt) {
+            const angularAcceleration = -(g / L) * Math.sin(angle);
+            angularVelocity += angularAcceleration * dt;
+            angle += angularVelocity * dt;
+            return { angle: angle, angularVelocity: angularVelocity };
+        }
+
+        // Function to draw the pendulum and related elements
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Use canvas dimensions from resizeCanvas
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const originX = canvasWidth / 2;
+            const originY = canvasHeight / 3; // same as kalman2
+            const scale = 100;
+
+            // Draw pendulum function (borrowed from kalman2.html)
+            function drawPendulum(angle, color) {
+                const x = originX + scale * L * Math.sin(angle);
+                const y = originY + scale * L * Math.cos(angle);
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y, 12, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            // Draw true pendulum (red)
+            drawPendulum(trueAngle, '#f05454');
+
+            // Draw model pendulum (blue)
+            drawPendulum(modelAngle, '#4b8bb9');
+
+            // Generate and draw noisy measurements
+            if (isPlaying) {
+                const measurement = trueAngle + gaussianRandom(0, Math.sqrt(measurementNoise));
+                measurements.push({
+                    angle: measurement,
+                    x: originX + scale * L * Math.sin(measurement),
+                    y: originY + scale * L * Math.cos(measurement),
+                    time: 0
+                });
+            }
+
+            // Draw measurements and innovation arrows
+            for (let i = 0; i < measurements.length; i++) {
+                const measurement = measurements[i];
+                const alpha = Math.max(0, 1 - measurement.time / 0.5); // Fade out over 0.5 seconds
+
+                // Draw measurement point
+                const measurementColor = `rgba(75,139,185,${alpha.toFixed(3)})`;
+                ctx.beginPath();
+                ctx.arc(measurement.x, measurement.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = measurementColor; // light blue
+                ctx.fill();
+
+                // Draw innovation arrow
+                ctx.beginPath();
+                ctx.moveTo(measurement.x, measurement.y);
+                const modelX = originX + scale * L * Math.sin(modelAngle);
+                const modelY = originY + scale * L * Math.cos(modelAngle);
+                ctx.lineTo(modelX, modelY);
+                ctx.strokeStyle = `rgba(255, 165, 0, ${alpha})`; // Orange
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                measurement.time += 0.02; // Increment time
+                if (measurement.time > 0.5) {
+                    measurements.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        // NEW: resize helper
+        function resizeCanvas() {
+            // Use the parent container's dimensions (400x400 from CSS)
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Main simulation loop
+        function simulate() {
+            if (isPlaying) {
+                // Simulate pendulum motion
+                const dt = 0.02;
+                const { angle: newTrueAngle, angularVelocity: newTrueAngularVelocity } = simulatePendulum(trueAngle, trueAngularVelocity, dt);
+                trueAngle = newTrueAngle;
+                trueAngularVelocity = newTrueAngularVelocity;
+
+                const { angle: newModelAngle, angularVelocity: newModelAngularVelocity } = simulatePendulum(modelAngle, modelAngularVelocity, dt);
+                modelAngle = newModelAngle;
+                modelAngularVelocity = newModelAngularVelocity;
+
+                draw();
+                requestAnimationFrame(simulate);
+            } else {
+                draw(); // Still draw when paused to show the final state
+            }
+        }
+
+        // Initial draw
+        draw();
+    })();
+</script>
+
+<!-- Add KaTeX JS -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/contrib/auto-render.min.js"></script>
+<script>
+    // Wait for the page to load before rendering math
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '\\[', right: '\\]', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false}
+            ],
+            throwOnError: false
+        });
+    });
+</script>
+
+<!-- Add new script for Kalman Gain visualization -->
+<script>
+    (function() {
+        const measErrorSlider = document.getElementById('measErrorSlider');
+        const modelErrorSlider = document.getElementById('modelErrorSlider');
+        const measErrorValue = document.getElementById('measErrorValue');
+        const modelErrorValue = document.getElementById('modelErrorValue');
+        const kalmanGainValue = document.getElementById('kalmanGainValue');
+        const kalmanGainIndicator = document.getElementById('kalmanGainIndicator');
+
+        function calculateKalmanGain(R, Q) {
+            // Simplified Kalman gain calculation for visualization
+            // K = P / (P + R) where P is affected by Q
+            // This is a simplified version of the actual calculation
+            const gain = Q / (Q + R);
+            return gain;
+        }
+
+        function updateKalmanGain() {
+            const R = parseFloat(measErrorSlider.value);
+            const Q = parseFloat(modelErrorSlider.value);
+            
+            const K = calculateKalmanGain(R, Q);
+            
+            // Update display values
+            measErrorValue.textContent = R.toFixed(2);
+            modelErrorValue.textContent = Q.toFixed(2);
+            kalmanGainValue.textContent = K.toFixed(3);
+            
+            // Update indicator position (0% = full model trust, 100% = full measurement trust)
+            const position = K * 100;
+            kalmanGainIndicator.style.left = `${position}%`;
+        }
+
+        measErrorSlider.addEventListener('input', updateKalmanGain);
+        modelErrorSlider.addEventListener('input', updateKalmanGain);
+
+        // Initial update
+        updateKalmanGain();
+    })();
+</script>
+
+</body>
+</html>

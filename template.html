@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalman Filter – [Page Title]</title>
+    <!-- Add KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Common styles */
+        #simulationArea {
+            height: 400px;
+            position: relative;
+        }
+        #pendulumCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            width: 90%;
+            margin: 0 auto;  /* Center the header content */
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 2rem;  /* Match kalman2's font size */
+        }
+        .header-title p {
+            margin: 0;
+            font-size: 1rem;  /* Match kalman2's font size */
+            color: #ffffff;
+        }
+        .header-title, .header-title h1, .header-title p {
+            color: white;
+            text-decoration: none;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        /* Add metrics styling */
+        .metrics {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .metric-value {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        /* Add controls styling */
+        .controls {
+            margin-top: 20px;
+        }
+        .slider-container {
+            margin: 10px 0;
+        }
+        .button-container {
+            margin: 15px 0;
+        }
+        /* Add highlight styling */
+        .highlight {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #4b8bb9;
+            margin: 20px 0;
+        }
+        /* Add math-block styling */
+        .math-block {
+            margin: 20px 0;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .legend {
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-flex">
+            <a href="index.html" class="header-title">
+                <h1>Kalman Filter – [Page Title]</h1>
+                <p>Interactive algorithm learning with a pendulum simulation</p>
+            </a>
+            <a href="index.html">
+                <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Main content sections go here -->
+        <section class="section">
+            <h2>[Section Title]</h2>
+            <p>[Section content]</p>
+            
+            <div class="highlight">
+                <p><strong>[Highlight Title]:</strong> [Highlight content]</p>
+            </div>
+        </section>
+
+        <!-- Simulation container template -->
+        <section class="section">
+            <h2>[Simulation Title]</h2>
+            <p>[Simulation description]</p>
+            
+            <div class="simulation-container">
+                <div class="canvas-container" id="simulationArea">
+                    <canvas id="pendulumCanvas"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <!-- Sliders and buttons go here -->
+                </div>
+
+                <!-- Legend template -->
+                <div class="legend">
+                    <span style="display: inline-block; margin-right: 20px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background-color: #f05454; border-radius: 50%;"></span>
+                        <span style="font-size: 0.9em;">True Pendulum</span>
+                    </span>
+                    <!-- Additional legend items go here -->
+                </div>
+            </div>
+        </section>
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='[prev-page].html'">← Previous</button>
+            <button onclick="window.location.href='[next-page].html'">Next →</button>
+        </div>
+    </div>
+
+    <!-- Add KaTeX JS -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+
+    <!-- Simulation script template -->
+    <script>
+        (function () {
+            // Canvas setup
+            const canvas = document.getElementById('pendulumCanvas');
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Your simulation code goes here
+        })();
+    </script>
+</body>
+</html>

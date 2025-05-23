@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalman Filter Playground</title>
-    <!-- Add KaTeX CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <title>Kalman Filter – Introduction</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <link rel="stylesheet" href="styles.css">
-
-</head>
-<style>
+    <style>
     #simulationArea {
         height: 500px;
         position: relative;
@@ -47,19 +44,19 @@
       max-height: 80px;
     }
 </style>
+
+</head>
 <body>
     <header>
-      <div class="header-flex">
-        <!-- Wrap header text in a link -->
-        <a href="index.html" class="header-title">
-            <h1>Kalman Filter Playground</h1>
-            <p>Learn algorithmic concepts through interactive pendulum simulation</p>
-        </a>
-        <!-- Wrap logo image in a link -->
-        <a href="index.html">
-            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
-        </a>
-      </div>
+        <div class="header-flex">
+            <a href="index.html" class="header-title">
+                <h1>Kalman Filter Playground</h1>
+                <p>Learn algorithmic concepts through interactive pendulum simulation</p>
+            </a>
+            <a href="index.html">
+                <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+            </a>
+        </div>
     </header>
 
     <div class="container">
@@ -109,7 +106,7 @@
             <p>Adjust the various parameters and see how they affect the pendulum's motion:</p>
             
             <div class="simulation-container">
-                <div class="canvas-container">
+                <div class="canvas-container" id="simulationArea">
                     <canvas id="pendulumCanvas"></canvas>
                 </div>
                 
@@ -156,8 +153,15 @@
                 </div>
             </div>
             
-            <div class="highlight">
-                <p><strong>Note:</strong> Increasing the pendulum length increases the period (slower oscillations). Increasing gravity decreases the period (faster oscillations).</p>
+            <div class="legend">
+                <span>
+                    <span class="legend-item true-pendulum"></span>
+                    <span>Pendulum</span>
+                </span>
+                <span>
+                    <span class="legend-item reference-line"></span>
+                    <span>Reference Line</span>
+                </span>
             </div>
         </section>
 
