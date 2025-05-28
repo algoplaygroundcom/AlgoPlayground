@@ -39,7 +39,7 @@
           text-decoration: none;
       }
       .logo {
-        max-height: 80px;
+        max-height: 120px;
       }
       .nav-buttons {
         display: flex;
@@ -58,8 +58,8 @@
       <div class="header-flex">
         <!-- Wrap header text in a link -->
         <a href="index.html" class="header-title">
-            <h1>Kalman Filter – Measurement Noise</h1>
-            <p>Interactive algorithm learning with a pendulum simulation</p>
+            <h1>Kalman Filter – Measurements And Physics</h1>
+            <p>The Necessity of Incorporating Measurements and a Dynamical Model</p>
         </a>
         <!-- Wrap logo image in a link -->
         <a href="index.html">
@@ -70,11 +70,11 @@
 
     <div class="container">
         <section class="section">
-            <h2>The Problem: Measurement Noise</h2>
-            <p>In real‑world systems, every measurement comes with noise. The noise may stem from imperfect sensors, environmental disturbances, or physical limitations.</p>
+            <h2>Why Kalman Filter? Use Measurments!</h2>
+            <p>At first glance, one might think we could simply use measurements to determine a system's state. However, the problem isn't just that measurements are inherently noisy—they also don't always arrive when we need them. A GPS receiver that provides position updates once per second is insufficient for an aircraft that needs to make much faster decisions. Therefore, we need something more to help us—a physical model of the system's behavior.</p></p>
             
             <div class="highlight">
-                <p><strong>Challenge:</strong> How can we accurately estimate the system state (pendulum angle) when our measurements are noisy and inaccurate?</p>
+                <p><strong>Challenge:</strong> If you had real time noisy measurements of a system, without using Kalman Filter, how would you determine it's state? <br>what would be the upsides and downsides of this method?</p>
             </div>
             
             <h3>Mathematical Model of Measurement Noise</h3>
@@ -92,7 +92,7 @@
                 <li><strong>R</strong> – noise variance (intensity)</li>
             </ul>
             
-            <p>The larger R is, the less reliable the measurements become. The Kalman filter is designed to overcome this problem.</p>
+            <p>The larger R is, the less reliable the measurements become.</p>
         </section>
 
 
@@ -161,55 +161,18 @@
 
         <section class="section">
             <h2>State Vector &amp; Predict Step</h2>
-            <p>The first building‑block of the Kalman filter is deciding <em>what</em> we are going to estimate.  
-               For the pendulum we use a two‑dimensional state vector:</p>
+            <p>As we saw in the previous section, the pendulum state vector and its dynamics can be described by:</p>
             <div class="math-block">
                 \[
-                    x =
-                    \begin{bmatrix}
-                    \theta \\[4pt]
-                    \dot{\theta}
-                    \end{bmatrix}
+                x = \begin{bmatrix} \theta \\ \dot{\theta} \end{bmatrix}, \quad
+                \dot{x}(t) = A_c\, x(t) \quad \text{with} \quad A_c = \begin{bmatrix} 0 & 1 \\ -\frac{g}{L} & -d \end{bmatrix}
                 \]
             </div>
-            <ul>
-                <li><strong>θ (rad)</strong> – the current angle measured from the vertical.</li>
-                <li><strong>θ̇ (rad/s)</strong> – the angular velocity.</li>
-            </ul>
-            <!-- Merged explanation about the predict step -->
-            <h3>Predicting the Next State: Linearization and Discretization</h3>
-            <p>To predict the pendulum's state, we start with its non‑linear continuous model:</p>
+            
+            <p>We can approximate the state at time \(t+\Delta t\) as:</p>
             <div class="math-block">
                 \[
-                    \ddot{\theta} + \frac{g}{L}\sin(\theta) = 0
-                \]
-            </div>
-            <p>For small angles around the equilibrium, we approximate \(\sin(\theta) \approx \theta\) and include damping to obtain:</p>
-            <div class="math-block">
-                \[
-                    \ddot{\theta} + d\,\dot{\theta} + \frac{g}{L}\theta = 0
-                \]
-            </div>
-            <!-- Inserted calculation for derivation -->
-            <p>By defining the state vector \(x = \begin{bmatrix}\theta \\ \dot{\theta}\end{bmatrix}\), we convert the second‑order differential equation into two first‑order equations:</p>
-            <div class="math-block">
-                \[
-                    \begin{aligned}
-                    \dot{\theta} &= \dot{\theta},\\[6pt]
-                    \ddot{\theta} &= -\frac{g}{L}\theta - d\,\dot{\theta}.
-                    \end{aligned}
-                \]
-            </div>
-            <p>This system can then be written in matrix form as:</p>
-            <div class="math-block">
-                \[
-                \begin{bmatrix}\dot{\theta}\\ \ddot{\theta}\end{bmatrix}\ = \dot{x}(t) = A_c\, x(t) \quad \text{with} \quad A_c = \begin{bmatrix} 0 & 1 \\ -\frac{g}{L} & -d \end{bmatrix}
-                \]
-            </div>
-            <p>Since the Kalman Filter operates in discrete time, we approximate the state at time \(t+\Delta t\) as:</p>
-            <div class="math-block">
-                \[
-                    x(t + \Delta t) \approx x(t) + A_c\,x(t)\Delta t = (I + A_c \Delta t)x(t)
+                    x(t + \Delta t) \approx x(t) + \dot{x}(t)\Delta t=x(t) + A_c\,x(t)\Delta t = (I + A_c \Delta t)x(t)
                 \]
             </div>
             <p>This gives the discrete‑time system matrix:</p>
@@ -221,7 +184,13 @@
             <p>The Predict Step is then performed as:</p>
             <div class="math-block">
                 \[
-                    x_k = A_d\,x_{k-1}
+                    x(t + \Delta t) = A_d\,x(t)
+                \]
+            </div>
+            <p>Or for longer time prediction:</p>
+            <div class="math-block">
+                \[
+                x(t + n\Delta t) = A_d^n\,x(t)
                 \]
             </div>
 
@@ -230,7 +199,7 @@
             
             <div class="math-block">
                 \[
-                    P_k = A_d\,P_{k-1}\,A_d^T + Q
+                P(t + \Delta t) = A_d\,P(t)\,A_d^T + Q
                 \]
             </div>
             
@@ -313,7 +282,6 @@
             <p>In the upcoming sections we will add</p>
             <ol>
                 <li>The measurement vector <strong>z</strong></li>
-                <li>The error covariance update through measurements</li>
                 <li>The Kalman gain <strong>K</strong> that fuses model and data optimally based on their uncertainties</li>
             </ol>
 

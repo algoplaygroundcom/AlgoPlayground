@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- Created by AlgoPlayground -->
+<!-- This file is part of the Kalman Filter series, which introduces the Kalman Filter algorithm using a simple pendulum as an example. -->
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
@@ -41,7 +43,7 @@
     }
 
     .logo {
-      max-height: 80px;
+      max-height: 120px;
     }
 </style>
 
@@ -50,8 +52,8 @@
     <header>
         <div class="header-flex">
             <a href="index.html" class="header-title">
-                <h1>Kalman Filter Playground</h1>
-                <p>Learn algorithmic concepts through interactive pendulum simulation</p>
+                <h1>Kalman Filter Intro</h1>
+                <p>Pendulum As A Kalman Filter Study Case</p>
             </a>
             <a href="index.html">
                 <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
@@ -60,6 +62,17 @@
     </header>
 
     <div class="container">
+        <section class="section">
+            <h2>Why kalman Filter?</h2>
+            <p>Suppose you have a spaceship that wishes to land on a small landing pad. To achieve a precise landing, you need to know the exact position and velocity of the spacecraft at all times.<br> However, your sensors provide noisy measurements, and they don't update as frequently as you need.
+                This is where the Kalman filter becomes invaluable.<br>
+                The Kalman Filter is the mathematically optimal way to fuse measurements and dynamic model to achieve precise knowledge of the system's state. Whether you want to monitor vital signs or guide an autonomous vehicle through city streets, the Kalman Filter provides the optimal solution.<br>
+                In this tutorial, we'll explore these concepts using a simple pendulum as our example system.</p>
+            <div class="highlight">
+                <p><strong>Challenge:</strong> What real-world things could be tracked or monitored using a Kalman filter?</p>
+            </div>
+        </section>
+
         <section class="section">
             <h2>Introduction to Simple Pendulum</h2>
             <p>A simple pendulum is a fundamental physical system consisting of a mass attached to a lightweight rod. When the pendulum moves, it performs a periodic motion under the influence of gravity.</p>
@@ -72,74 +85,80 @@
             <p>The motion of a simple pendulum is described by a second-order differential equation:</p>
             
             <div class="math-block">
-                \[\frac{d^2\theta}{dt^2} + \frac{g}{L}\sin(\theta) = 0\]
+                \[
+                \ddot{\theta} + d\theta + \frac{g}{L}\sin(\theta) = 0
+                \]
             </div>
-            
+
             <p>Where:</p>
             <ul>
                 <li><strong>θ</strong> = angle from vertical (in radians)</li>
                 <li><strong>g</strong> = gravitational acceleration (9.8 m/s²)</li>
                 <li><strong>L</strong> = pendulum length (in meters)</li>
             </ul>
-            
-            <p>For small angles (θ < 15°), we can approximate the equation to:</p>
-            
+
+            <p>For small angles, we can approximate the equation to:</p>
+
             <div class="math-block">
-                \[\frac{d^2\theta}{dt^2} + \frac{g}{L}\theta = 0\]
+                \[\ddot{\theta} + d\theta+ \frac{g}{L}\theta = 0\]
             </div>
-            
-            <p>This becomes a simple harmonic oscillator with angular frequency:</p>
-            
+            <p>By defining the state vector \(x = \begin{bmatrix}\theta \\ \dot{\theta}\end{bmatrix}\), we convert the second‑order differential equation into two first‑order equations:</p>
             <div class="math-block">
-                \[\omega = \sqrt{\frac{g}{L}}\]
+                \[
+                    \begin{aligned}
+                    \dot{\theta} &= \dot{\theta},\\[6pt]
+                    \ddot{\theta} &= -\frac{g}{L}\theta - d\,\dot{\theta}.
+                    \end{aligned}
+                \]
             </div>
-            
-            <p>And the period (time for one complete oscillation) of the pendulum is:</p>
-            
+            <p>This system can then be written in matrix form as:</p>
             <div class="math-block">
-                \[T = 2\pi\sqrt{\frac{L}{g}}\]
+                \[
+                \begin{bmatrix}\dot{\theta}\\ \ddot{\theta}\end{bmatrix}\ = \dot{x}(t) = A_c\, x(t) \quad \text{with} \quad A_c = \begin{bmatrix} 0 & 1 \\ -\frac{g}{L} & -d \end{bmatrix}
+                \]
             </div>
+            <p>This matrix \(A_c\) is called the system matrix, and it represents how the state evolves over time according to our physical model. In the next section, we'll see how this model is used in the Kalman filter prediction step.</p>
         </section>
 
         <section class="section">
             <h2>Interactive Pendulum Simulation</h2>
             <p>Adjust the various parameters and see how they affect the pendulum's motion:</p>
-            
+
             <div class="simulation-container">
                 <div class="canvas-container" id="simulationArea">
                     <canvas id="pendulumCanvas"></canvas>
                 </div>
-                
+
                 <div class="controls">
                     <div class="slider-container">
                         <label for="lengthSlider">Pendulum Length (m):</label>
                         <span class="value-display" id="lengthValue">1.0</span>
                         <input type="range" id="lengthSlider" min="0.1" max="2" step="0.1" value="1.0">
                     </div>
-                    
+
                     <div class="slider-container">
                         <label for="gravitySlider">Gravitational Acceleration (m/s²):</label>
                         <span class="value-display" id="gravityValue">9.8</span>
                         <input type="range" id="gravitySlider" min="1" max="10" step="0.05" value="9.8">
                     </div>
-                    
+
                     <div class="slider-container">
                         <label for="angleSlider">Initial Angle (degrees):</label>
                         <span class="value-display" id="angleValue">30</span>
-                        <input type="range" id="angleSlider" min="0" max="45" step="0.5" value="30">
+                        <input type="range" id="angleSlider" min="0" max="90" step="0.5" value="30">
                     </div>
-                    
+
                     <div class="slider-container">
                         <label for="dampingSlider">Damping Coefficient:</label>
                         <span class="value-display" id="dampingValue">0.02</span>
                         <input type="range" id="dampingSlider" min="0" max="0.1" step="0.005" value="0.02">
                     </div>
-                    
+
                     <div class="button-container">
                         <button id="resetButton">Reset</button>
                         <button id="pauseButton">Pause</button>
                     </div>
-                    
+
                     <div class="metrics">
                         <div class="metric-card">
                             <div class="metric-label">Period</div>
@@ -152,36 +171,36 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="legend">
                 <span>
                     <span class="legend-item true-pendulum"></span>
                     <span>Pendulum</span>
                 </span>
-                <span>
-                    <span class="legend-item reference-line"></span>
-                    <span>Reference Line</span>
-                </span>
             </div>
         </section>
 
         <section class="section">
-            <h2>Tracking the Pendulum State</h2>
-            <p>To understand the Kalman Filter algorithm, we'll start by understanding the system state. The state of the pendulum can be described by a two-component vector:</p>
-            
+            <h2>State Vector - Tracking the Pendulum State</h2>
+            <p>To understand the Kalman Filter algorithm, we'll start by understanding the system state, or the "State Vector".
+                One can think of the State Vector as the current estimation of the true state.<br>
+                In case of the pendulum, it can be described by a two-component vector:</p>
+
             <div class="math-block">
-                \[x = \begin{bmatrix} \theta \\ \dot{\theta} \end{bmatrix}\]
+                \[
+                x = \begin{bmatrix} \theta \\ \dot{\theta} \end{bmatrix}, \quad \text{where} \quad
+                \begin{aligned}
+                \theta & = \text{angle from vertical}, \\
+                \dot{\theta} & = \text{angular velocity}
+                \end{aligned}
+                \]
             </div>
+
+            <p> At each point it time, we would want our state vector to reflect the reality as accurately as possible.<br>
+                In the following sections, we will see that the Kalman Filter aims to make sure that the State Vector is as accurate as can be - By using a physical model and measurements.
             
-            <p>Where:</p>
-            <ul>
-                <li><strong>θ</strong> = angle from vertical</li>
-                <li><strong>θ̇</strong> = angular velocity</li>
-            </ul>
-            
-            <p>In the following sections, we'll see how the Kalman Filter algorithm allows us to track this state even when our measurements are noisy or incomplete.</p>
         </section>
-        
+
         <div class="nav-buttons">
             <button class="disabled-button">Previous</button>
             <button onclick="window.location.href='kalman2.html'">Next →</button>
@@ -210,17 +229,17 @@
         let gravity = 9.8;        // gravitational acceleration in m/s²
         let angle = 30;           // initial angle in degrees
         let damping = 0.02;       // damping coefficient
-        
+
         let theta = angle * Math.PI / 180;  // convert to radians
         let omega = 0;                      // initial angular velocity
         let time = 0;                       // time
-        
+
         let isPaused = false;               // is simulation paused
-        
+
         // Get canvas and its context
         const canvas = document.getElementById('pendulumCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Adjust canvas size
         function resizeCanvas() {
             canvas.width = canvas.offsetWidth;
@@ -228,69 +247,69 @@
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+
         // Update slider values and display
         document.getElementById('lengthSlider').addEventListener('input', function() {
             length = parseFloat(this.value);
             document.getElementById('lengthValue').textContent = length.toFixed(1);
             updatePeriod();
         });
-        
+
         document.getElementById('gravitySlider').addEventListener('input', function() {
             gravity = parseFloat(this.value);
             document.getElementById('gravityValue').textContent = gravity.toFixed(1);
             updatePeriod();
         });
-        
+
         document.getElementById('angleSlider').addEventListener('input', function() {
             angle = parseFloat(this.value);
             document.getElementById('angleValue').textContent = angle.toFixed(0);
             resetSimulation();
         });
-        
+
         document.getElementById('dampingSlider').addEventListener('input', function() {
             damping = parseFloat(this.value);
             document.getElementById('dampingValue').textContent = damping.toFixed(2);
         });
-        
+
         document.getElementById('resetButton').addEventListener('click', resetSimulation);
-        
+
         document.getElementById('pauseButton').addEventListener('click', function() {
             isPaused = !isPaused;
             this.textContent = isPaused ? 'Resume' : 'Pause';
         });
-        
-        
+
+
         // Calculate and update pendulum period
         function updatePeriod() {
             const period = 2 * Math.PI * Math.sqrt(length / gravity);
             document.getElementById('periodValue').textContent = period.toFixed(2);
         }
-        
+
         // Calculate total energy of the pendulum
         function calculateEnergy() {
             // Kinetic energy: 0.5 * m * L^2 * omega^2 (assuming m=1 for simplicity)
             const kineticEnergy = 0.5 * Math.pow(length, 2) * Math.pow(omega, 2);
-            
+
             // Potential energy: m * g * L * (1 - cos(theta)) (assuming m=1 for simplicity)
             const potentialEnergy = gravity * length * (1 - Math.cos(theta));
-            
+
             return kineticEnergy + potentialEnergy;
         }
-        
+
         // Reset the simulation
         function resetSimulation() {
             theta = angle * Math.PI / 180;  // convert to radians
             omega = 0;                      // initial angular velocity
             time = 0;                       // time
         }
-        
+
         // Update the pendulum simulation
         function updateSimulation(dt) {
             if (isPaused) return;
-            
+
             // Implement Runge-Kutta 4th order method to solve the differential equation
-            
+
             // Function to compute derivatives of theta and omega
             function derivatives(t, th, om) {
                 return {
@@ -298,48 +317,48 @@
                     dOmega: -gravity / length * Math.sin(th) - damping * om
                 };
             }
-            
+
             // Compute using RK4
             const k1 = derivatives(time, theta, omega);
             const k2 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k1.dTheta, 
+                time + dt/2,
+                theta + dt/2 * k1.dTheta,
                 omega + dt/2 * k1.dOmega
             );
             const k3 = derivatives(
-                time + dt/2, 
-                theta + dt/2 * k2.dTheta, 
+                time + dt/2,
+                theta + dt/2 * k2.dTheta,
                 omega + dt/2 * k2.dOmega
             );
             const k4 = derivatives(
-                time + dt, 
-                theta + dt * k3.dTheta, 
+                time + dt,
+                theta + dt * k3.dTheta,
                 omega + dt * k3.dOmega
             );
-            
+
             theta += dt * (k1.dTheta + 2*k2.dTheta + 2*k3.dTheta + k4.dTheta) / 6;
             omega += dt * (k1.dOmega + 2*k2.dOmega + 2*k3.dOmega + k4.dOmega) / 6;
             time += dt;
-            
+
             // Update energy value
             const energy = calculateEnergy();
             document.getElementById('energyValue').textContent = energy.toFixed(2);
         }
-        
+
         // Draw the pendulum
         function drawPendulum() {
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Calculate origin position (pivot point)
             const originX = canvas.width / 2;
             const originY = canvas.height / 3;
-            
+
             // Calculate bob position (end of pendulum)
             const scale = 100;  // scale factor to convert meters to pixels
             const bobX = originX + length * scale * Math.sin(theta);
             const bobY = originY + length * scale * Math.cos(theta);
-            
+
             // Draw the rod
             ctx.beginPath();
             ctx.moveTo(originX, originY);
@@ -347,13 +366,13 @@
             ctx.strokeStyle = '#414f63';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
+
             // Draw pivot point
             ctx.beginPath();
             ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
             ctx.fillStyle = '#414f63';
             ctx.fill();
-            
+
             // Draw the bob
             ctx.beginPath();
             ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
@@ -362,7 +381,7 @@
             ctx.strokeStyle = '#e63946';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
+
             // Draw reference line marking the vertical
             ctx.beginPath();
             ctx.moveTo(originX, originY);
@@ -372,7 +391,7 @@
             ctx.lineWidth = 1;
             ctx.stroke();
             ctx.setLineDash([]);
-            
+
             // Display current angle in text
             ctx.font = '14px Arial';
             ctx.fillStyle = '#414f63';
@@ -380,21 +399,21 @@
             const currentAngle = (theta * 180 / Math.PI).toFixed(1);
             ctx.fillText('Angle: ' + currentAngle + '°', canvas.width - 20, 30);
         }
-        
+
         // Animation loop
         let lastTime = 0;
-        
+
         function animate(currentTime) {
             if (!lastTime) lastTime = currentTime;
             const deltaTime = (currentTime - lastTime) / 1000; // convert to seconds
             lastTime = currentTime;
-            
+
             updateSimulation(Math.min(deltaTime, 0.02)); // limit delta time to prevent instability
             drawPendulum();
-            
+
             requestAnimationFrame(animate);
         }
-        
+
         // Start animation and simulation
         updatePeriod();
         console.log("Starting animation...");
