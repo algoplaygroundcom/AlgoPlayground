@@ -107,9 +107,9 @@
                 
                 <div class="controls">
                     <div class="slider-container">
-                        <label for="noiseSlider">Noise intensity (R):</label>
-                        <span class="value-display" id="noiseValue">0.1</span>
-                        <input type="range" id="noiseSlider" min="0" max="0.5" step="0.005" value="0.1">
+                        <label for="noiseSlider">Measurement Noise R std dev:</label>
+                        <span class="value-display" id="noiseValue">10°</span>
+                        <input type="range" id="noiseSlider" min="0" max="30" step="1" value="10">
                     </div>
                     
                     <div class="slider-container">
@@ -133,7 +133,7 @@
                     <div class="metrics">
                         <div class="metric-card">
                             <div class="metric-label">Noise std. dev.</div>
-                            <div class="metric-value"><span id="stdDevValue">0.32</span> radians</div>
+                            <div class="metric-value"><span id="stdDevValue">18.34</span> degrees</div>
                         </div>
                         <div class="metric-card">
                             <div class="metric-label">Measurement count</div>
@@ -207,8 +207,11 @@
             <ul>
                 <li><strong>P<sub>k</sub></strong> – error covariance matrix at time step k</li>
                 <li><strong>A<sub>d</sub></strong> – system dynamics matrix</li>
-                <li><strong>Q</strong> – process noise covariance (model uncertainty)</li>
+                <li><strong>Q</strong> – model expected error</li>
             </ul>
+            <div class="highlight">
+                <p><strong>Note:</strong> Pay close attention to the process noise Q — it lets the filter handle unmodeled or unexpected dynamics by reducing trust in the physical model. We will witness its effect Hands On in chapter 4.</p>
+            </div>
             
             <p>The error covariance matrix P represents our uncertainty about the state estimate. For our 2D state vector, P is a 2×2 matrix:</p>
             
@@ -244,13 +247,13 @@
                 </div>
                 <div class="slider-container">
                     <label for="initialPSlider">Initial uncertainty (P₀):</label>
-                    <span class="value-display" id="initialPValue">0.01</span>
- <input type="range" id="initialPSlider" min="0.001" max="0.05" step="0.0005" value="0.01">
+                    <span class="value-display" id="initialPValue">5°</span>
+                    <input type="range" id="initialPSlider" min="1" max="30" step="1" value="5">
                 </div>
                 <div class="slider-container">
-                    <label for="qSlider">Process noise (Q):</label>
-                    <span class="value-display" id="qValue">0.001</span>
- <input type="range" id="qSlider" min="0" max="0.005" step="0.00005" value="0.001">
+                    <label for="qSlider">Process noise Q std dev:</label>
+                    <span class="value-display" id="qValue">5°</span>
+ <input type="range" id="qSlider" min="0" max="30" step="0.5" value="5">
                 </div>
                 <div class="button-container">
                     <button id="resetPredictButton">Reset</button>
@@ -259,11 +262,11 @@
                 <div class="metrics">
                     <div class="metric-card">
                         <div class="metric-label">Angle uncertainty</div>
-                        <div class="metric-value"><span id="angleUncertainty">0.01</span> rad</div>
+                        <div class="metric-value"><span id="angleUncertainty">57°</span></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-label">Velocity uncertainty</div>
-                        <div class="metric-value"><span id="velocityUncertainty">0.01</span> rad/s</div>
+                        <div class="metric-value"><span id="velocityUncertainty">57°/s</span></div>
                     </div>
                 </div>
                 </div>
@@ -306,7 +309,7 @@
   let theta = 0.5, omega = 0;
 
   /* ---------- UI state ---------- */
-  let noiseStd = parseFloat(noiseSlider.value);            // measurement σ
+  let noiseStd = parseFloat(noiseSlider.value) * Math.PI / 180; // measurement σ, now in radians
   let measRate  = parseInt(measurementRateSlider.value);   // Hz
   let ptLife    = parseFloat(pointLifetimeSlider.value);   // seconds
   let paused = false;
@@ -365,9 +368,10 @@
 
   /* ---------- slider / button wiring ---------- */
   noiseSliderEl.addEventListener('input', () => {
-    noiseStd = parseFloat(noiseSliderEl.value);
-    noiseVal.textContent = noiseStd.toFixed(2);
-    stdDevVal.textContent = noiseStd.toFixed(2);
+    noiseStd = parseFloat(noiseSliderEl.value) * Math.PI / 180;
+    const degValue = Math.round(noiseStd * 180 / Math.PI);
+    noiseVal.textContent = degValue + "°";
+    stdDevVal.textContent = degValue + "°";
   });
 
   measRateSliderEl.addEventListener('input', () => {
@@ -473,8 +477,9 @@
   }
 
   /* ---------- initial UI display ---------- */
-  noiseVal.textContent = noiseStd.toFixed(2);
-  stdDevVal.textContent = noiseStd.toFixed(2);
+  const degValueInit = Math.round(noiseStd * 180 / Math.PI);
+  noiseVal.textContent = degValueInit + "°";
+  stdDevVal.textContent = degValueInit + "°";
   measRateVal.textContent = measRate;
   ptLifeVal.textContent = ptLife;
   pauseBtn.textContent = 'Pause';
@@ -529,14 +534,16 @@
             });
 
             document.getElementById('initialPSlider').addEventListener('input', function() {
-                initialP = parseFloat(this.value);
-                document.getElementById('initialPValue').textContent = initialP.toFixed(3);
+                const deg = parseFloat(this.value);
+                initialP = Math.pow(deg * Math.PI / 180, 2);
+                document.getElementById('initialPValue').textContent = Math.round(deg) + "°";
                 resetCovariance();
             });
 
             document.getElementById('qSlider').addEventListener('input', function() {
-                processNoise = parseFloat(this.value);
-                document.getElementById('qValue').textContent = processNoise.toFixed(4);
+                const deg = parseFloat(this.value);
+                processNoise = Math.pow(deg * Math.PI / 180, 2);
+                document.getElementById('qValue').textContent = Math.round(deg) + "°";
                 Q = [[processNoise, 0], [0, processNoise]];
             });
 
@@ -560,8 +567,8 @@
             }
 
             function updateUncertaintyDisplay() {
-                document.getElementById('angleUncertainty').textContent = Math.sqrt(P[0][0]).toFixed(3);
-                document.getElementById('velocityUncertainty').textContent = Math.sqrt(P[1][1]).toFixed(3);
+                document.getElementById('angleUncertainty').textContent = Math.round(Math.sqrt(P[0][0]) * 180 / Math.PI) + "°";
+                document.getElementById('velocityUncertainty').textContent = Math.round(Math.sqrt(P[1][1]) * 180 / Math.PI) + "°/s";
             }
 
             function matrixMultiply(A, B) {

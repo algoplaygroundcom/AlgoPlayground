@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalman Filter – Full Implementation</title>
+    <!-- Add KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #simulationArea {
+            height: 500px; /* Adjusted for potentially more complex viz */
+            position: relative;
+        }
+        .graphs-container {
+            flex: 1 1 300px;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 500px; /* Match simulation area height */
+            overflow: hidden;
+        }
+
+        #angleGraph, #velocityGraph {
+            position: relative;
+            width: 100% !important;
+            height: 45% !important;
+            display: block;
+        }
+
+        canvas.graph {
+            background-color: white;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        #pendulumCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            width: 90%;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .header-title p {
+            margin: 0;
+            font-size: 1rem;
+            color: #ffffff;
+        }
+        .header-title, .header-title h1, .header-title p {
+            color: white;
+            text-decoration: none;
+        }
+        .logo {
+            max-height: 120px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .simulation-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .canvas-container {
+            flex: 2 1 500px; /* Pendulum canvas takes more space */
+            min-width: 300px;
+        }
+        .graphs-container {
+            flex: 1 1 300px; /* Graphs container */
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .graph {
+            width: 100%;
+            height: 200px; /* Height for individual graphs */
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        .controls {
+            flex: 1 1 100%; /* Controls span full width if needed or sidebar */
+            padding: 10px;
+            background: #f0f2f5;
+            border-radius: 8px;
+        }
+        .slider-container, .button-container {
+            margin-bottom: 15px;
+        }
+        .metrics {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-flex">
+        <a href="index.html" class="header-title">
+            <h1>Kalman Filter – Full Implementation</h1>
+            <p>Bringing It All Together: Prediction, Measurement, and Update</p>
+        </a>
+        <a href="index.html">
+            <img src="assets/img/AlgoPlayground.png" alt="AlgoPlayground Logo" class="logo">
+        </a>
+    </div>
+</header>
+
+<div class="container">
+    <section class="section">
+        <h2>The Complete Kalman Filter Cycle</h2>
+        <p>Now, we bring together all the concepts: the prediction step (using the system's dynamic model) and the update step (incorporating noisy measurements). The Kalman filter iteratively performs these two steps to provide an optimal estimate of the system's state.</p>
+        <p>Initially, the state vector is initialized to our best first guess of the system's state, and the covariance matrix \(P\) is set to reflect our initial uncertainty. As measurements arrive, the Kalman filter updates its current state estimate and covariance, continuously refining its understanding of the system.</p>
+        <div class="highlight">
+            <p><strong>The Goal:</strong> To output accurate estimations of the system's state at a given rate, even with noisy measurements and an imperfect model.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Visualizing the Full Filter</h2>
+        <p>In the simulation below, you'll see the Kalman filter in action. We have a "true" pendulum (which might be affected by unmodeled forces like wind) and a "Kalman estimate" pendulum that tries to track it. The Kalman filter's dynamic model is a linearized approximation of the pendulum physics and does not account for the wind, presenting a challenge for the filter.</p>
+        <p>You can control various parameters to see how they affect the filter's performance. Observe how the filter's estimate (blue) tries to follow the true pendulum (red), and how the uncertainty ellipse changes.</p>
+    </section>
+
+    <section class="section">
+        <h2>Interactive Kalman Filter Simulation</h2>
+        <div class="simulation-container">
+            <div class="canvas-container" id="simulationArea">
+                <canvas id="pendulumCanvas"></canvas>
+            </div>
+            <div class="graphs-container">
+                <canvas class="graph" id="angleGraph" width="400" height="200"></canvas>
+                <canvas class="graph" id="velocityGraph" width="400" height="200"></canvas>
+            </div>
+            <div class="controls">
+                <div class="slider-container">
+                    <label for="noiseSlider">Measurement Noise (R, std dev):</label>
+                    <span class="value-display" id="noiseValue">10°</span>
+                    <input type="range" id="noiseSlider" min="0" max="25" step="1" value="10">
+                </div>
+                <div class="slider-container">
+                    <label for="measurementRateSlider">Measurement Rate (Hz):</label>
+                    <span class="value-display" id="measurementRateValue">5</span>
+                    <input type="range" id="measurementRateSlider" min="0" max="20" step="1" value="5">
+                </div>
+                <div class="slider-container">
+                    <label for="dtSlider">Simulation Time Step (Δt):</label>
+                    <span class="value-display" id="dtValue">0.02</span>
+                    <input type="range" id="dtSlider" min="0.01" max="0.1" step="0.005" value="0.02">
+                </div>
+                <div class="slider-container">
+                    <label for="qSlider">Model Process Noise (Q, std):</label>
+                    <span class="value-display" id="qValue">0.5°</span>
+                    <input type="range" id="qSlider" min="0" max="0.5" step="0.001" value="0.1">
+                </div>
+                <div class="slider-container">
+                    <label for="windSlider">Wind Speed (rad/s²):</label>
+                    <span class="value-display" id="windValue">0.0</span>
+                    <input type="range" id="windSlider" min="0" max="0.5" step="0.01" value="0.0">
+                </div>
+                <div class="button-container">
+                    <button id="resetButton">Reset Simulation</button>
+                    <button id="toggleMeasurementsButton">Pause Measurements</button>
+                </div>
+                 <div class="metrics">
+                    <p>Angle Error (RMSE): <span id="angleError">0.00</span> rad</p>
+                    <p>Velocity Error (RMSE): <span id="velocityError">0.00</span> rad/s</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Key Takeaways</h2>
+        <p>Experiment with the simulation to observe the following:</p>
+        <ul>
+            <li><strong>Impact of Δt:</strong> When the simulation time step (Δt) is larger, the discrete model (Ad) becomes a less accurate approximation of the continuous system, potentially leading to larger prediction errors.</li>
+            <li><strong>Robustness to Measurement Noise (R):</strong> Even with significant measurement noise (high R), the filter can still produce a good estimate if the model is trusted (low Q) and there are no unmodeled forces (like wind).</li>
+            <li><strong>Role of Process Noise (Q):</strong> Increasing the process noise Q makes the filter trust the measurements more. This can help the filter adapt to unmodeled dynamics (like wind) but can also make the estimate more susceptible to measurement noise if Q is too high.</li>
+            <li><strong>Measurement Rate:</strong> Higher measurement rates generally lead to better tracking, as the filter gets more frequent corrections.</li>
+            <li><strong>Unmodeled Forces (Wind):</strong> When wind is introduced, the filter (which doesn't know about wind) will struggle. Increasing Q can help it follow the true pendulum more closely by relying more on measurements, but the estimate might become noisier.</li>
+        </ul>
+    </section>
+
+    <section class="section">
+        <h2>Summary of the Kalman Filter</h2>
+        <p>The Kalman filter is a powerful recursive algorithm that estimates the state of a dynamic system from a series of incomplete and noisy measurements. It operates in a two-step process:
+        <ol>
+            <li><strong>Predict:</strong> Project the current state and error covariance estimates forward in time using the system's dynamic model.</li>
+            <li><strong>Update:</strong> Incorporate a new measurement into the predicted state to refine the estimate, using the Kalman gain to optimally balance the predicted state and the measurement.</li>
+        </ol>
+        The filter is optimal in the sense that it minimizes the mean square error of the estimated parameters, assuming the system model is linear and the noise is Gaussian.
+        </p>
+        <div class="highlight">
+            <p>Thank you for following along with this Kalman filter tutorial! We hope it provided a clear and interactive introduction to this fundamental algorithm. We encourage you to recommend AlgoPlayground to your friends and colleagues. We look forward to your feedback and suggestions for future chapters!</p>
+        </div>
+    </section>
+
+    <div class="nav-buttons">
+        <button onclick="window.location.href='kalman3.html'">← Previous</button><!-- Or link to a summary/conclusion page if available -->
+    </div>
+</div>
+
+<!-- Add KaTeX JS -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/contrib/auto-render.min.js"></script>
+<!-- Add Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '\\[', right: '\\]', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false}
+            ],
+            throwOnError: false
+        });
+
+        // --- Simulation Code Will Go Here ---
+        const g = 9.81; // gravity
+        const L = 1.0;  // pendulum length
+        const defaultDamping = 0.01; // default damping
+        const points = [];   // {theta: angle, age: timeAlive}
+        let ptLife = 1.0;
+
+        // Canvas & Context
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const noiseSlider = document.getElementById('noiseSlider');
+        const measurementRateSlider = document.getElementById('measurementRateSlider');
+        const dtSlider = document.getElementById('dtSlider');
+        const qSlider = document.getElementById('qSlider');
+        const windSlider = document.getElementById('windSlider');
+        const resetButton = document.getElementById('resetButton');
+        const toggleMeasurementsButton = document.getElementById('toggleMeasurementsButton');
+
+        const noiseValueDisplay = document.getElementById('noiseValue');
+        const measurementRateValueDisplay = document.getElementById('measurementRateValue');
+        const dtValueDisplay = document.getElementById('dtValue');
+        const qValueDisplay = document.getElementById('qValue');
+        const windValueDisplay = document.getElementById('windValue');
+        const angleErrorDisplay = document.getElementById('angleError');
+        const velocityErrorDisplay = document.getElementById('velocityError');
+
+        // Simulation State
+        let simTime = 0;
+        let trueState = { theta: Math.PI / 4, omega: 0 }; // {angle, angular velocity}
+        let kalmanState = { theta: Math.PI / 4, omega: 0 };
+        let P = [[0.1, 0], [0, 0.1]]; // Covariance matrix: P_theta, P_theta_omega, P_omega_theta, P_omega
+
+        let R_val = parseFloat(noiseSlider.value); // Measurement noise variance
+        let measRate = parseInt(measurementRateSlider.value);
+        let dt = parseFloat(dtSlider.value);
+        let Q_val_theta = parseFloat(qSlider.value); // Process noise for theta
+        let Q_val_omega = parseFloat(qSlider.value); // Process noise for omega
+        let windEffect = parseFloat(windSlider.value);
+        const initialNoiseDegrees = parseFloat(noiseSlider.value);
+        R_val = Math.pow(initialNoiseDegrees * Math.PI / 180.0, 2);
+        noiseValueDisplay.textContent = `${initialNoiseDegrees}°`;
+        const initialQDegrees = parseFloat(qSlider.value);
+        Q_val_theta = Math.pow(initialQDegrees * Math.PI / 180.0, 2);
+        Q_val_omega = Q_val_theta;
+        qValueDisplay.textContent = `${initialQDegrees}°`;
+
+        let measurementsPaused = false;
+        let lastMeasurementTime = 0;
+
+        // Graphing
+        let angleChart, velocityChart;
+        const maxDataPoints = 100;
+        let angleData = { true: [], estimate: [], p_plus: [], p_minus: [] };
+        let velocityData = { true: [], estimate: [], p_plus: [], p_minus: [] };
+        let timeLabels = [];
+
+        function initGraphs() {
+            const angleCanvas = document.getElementById('angleGraph');
+            const velocityCanvas = document.getElementById('velocityGraph');
+
+            angleCanvas.width = angleCanvas.offsetWidth;
+            angleCanvas.height = angleCanvas.offsetHeight;
+            velocityCanvas.width = velocityCanvas.offsetWidth;
+            velocityCanvas.height = velocityCanvas.offsetHeight;
+
+            const angleCtx = angleCanvas.getContext('2d');
+            const velocityCtx = velocityCanvas.getContext('2d');
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'Time (s)' },
+                        min: 0,
+                        max: 10, // Show 10 seconds window
+                        ticks: {
+                            maxTicksLimit: 10
+                        }
+                    },
+                    y: { title: { display: true } }
+                },
+                elements: {
+                    point: { radius: 0 },  // Remove points for smoother lines
+                    line: { tension: 0.4 } // Add some curve tension for smoother lines
+                },
+                animation: {
+                    duration: 0,  // Disable animations for better performance
+                }
+            };
+
+
+            if (angleChart) angleChart.destroy();
+            angleChart = new Chart(angleCtx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        { label: 'True Angle', data: angleData.true, borderColor: 'red', borderWidth: 2, fill: false },
+                        { label: 'Kalman Angle', data: angleData.estimate, borderColor: 'blue', borderWidth: 2, fill: false },
+                        { label: 'Angle +σ', data: angleData.p_plus, borderColor: 'rgba(0,0,255,0.3)', borderWidth: 1, fill: '+1' },
+                        { label: 'Angle -σ', data: angleData.p_minus, borderColor: 'rgba(0,0,255,0.3)', borderWidth: 1, fill: false }
+                    ]
+                },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { ...commonOptions.scales.y.title, text: 'Angle (rad)'}}}}
+            });
+
+            if (velocityChart) velocityChart.destroy();
+            velocityChart = new Chart(velocityCtx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        { label: 'True Omega', data: velocityData.true, borderColor: 'red', borderWidth: 2, fill: false },
+                        { label: 'Kalman Omega', data: velocityData.estimate, borderColor: 'blue', borderWidth: 2, fill: false },
+                        { label: 'Omega +σ', data: velocityData.p_plus, borderColor: 'rgba(0,0,255,0.3)', borderWidth: 1, fill: '+1' },
+                        { label: 'Omega -σ', data: velocityData.p_minus, borderColor: 'rgba(0,0,255,0.3)', borderWidth: 1, fill: false }
+                    ]
+                },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { ...commonOptions.scales.y.title, text: 'Angular Velocity (rad/s)'}}}}
+            });
+        }
+
+        function updateGraphData() {
+            // Push new data
+            timeLabels.push(parseFloat(simTime.toFixed(2)));
+            angleData.true.push(trueState.theta);
+            angleData.estimate.push(kalmanState.theta);
+            angleData.p_plus.push(kalmanState.theta + Math.sqrt(P[0][0]));
+            angleData.p_minus.push(kalmanState.theta - Math.sqrt(P[0][0]));
+
+            velocityData.true.push(trueState.omega);
+            velocityData.estimate.push(kalmanState.omega);
+            velocityData.p_plus.push(kalmanState.omega + Math.sqrt(P[1][1]));
+            velocityData.p_minus.push(kalmanState.omega - Math.sqrt(P[1][1]));
+
+            // Update x-axis window
+            const currentTime = simTime;
+            angleChart.options.scales.x.min = Math.max(0, currentTime - 10);
+            angleChart.options.scales.x.max = currentTime;
+            velocityChart.options.scales.x.min = Math.max(0, currentTime - 10);
+            velocityChart.options.scales.x.max = currentTime;
+
+            // Remove old data that's outside the window
+            while (timeLabels[0] < currentTime - 10) {
+                timeLabels.shift();
+                Object.keys(angleData).forEach(key => angleData[key].shift());
+                Object.keys(velocityData).forEach(key => velocityData[key].shift());
+            }
+
+            angleChart.update('none'); // Use 'none' mode for better performance
+            velocityChart.update('none');
+        }
+
+
+        function resetSimulation() {
+            simTime = 0;
+            trueState = { theta: Math.PI / 4, omega: 0 };
+            kalmanState = { theta: Math.PI / 4, omega: 0 };
+            P = [[0.1, 0], [0, 0.1]]; // Reset covariance
+            lastMeasurementTime = 0;
+            points.length = 0;  // Clear measurement points
+            lastMeasurementTime = 0;
+            const initialNoiseDegrees = parseFloat(noiseSlider.value);
+            R_val = Math.pow(initialNoiseDegrees * Math.PI / 180.0, 2);
+            noiseValueDisplay.textContent = `${initialNoiseDegrees}°`;
+
+            // Initial conversion of Q slider value from degrees to radians²
+            const initialQDegrees = parseFloat(qSlider.value);
+            Q_val_theta = Math.pow(initialQDegrees * Math.PI / 180.0, 2);
+            Q_val_omega = Q_val_theta;
+            qValueDisplay.textContent = `${initialQDegrees}°`;
+
+            // Clear graph data
+            timeLabels.length = 0;
+            Object.keys(angleData).forEach(key => angleData[key].length = 0);
+            Object.keys(velocityData).forEach(key => velocityData[key].length = 0);
+            initGraphs(); // Re-initialize graphs to clear them properly
+
+            console.log("Simulation Reset");
+        }
+
+        // Event Listeners for sliders
+        noiseSlider.addEventListener('input', (e) => {
+            const degrees = parseFloat(e.target.value);
+            // Convert degrees to radians and square it for variance
+            // First convert degrees to radians (multiply by π/180)
+            // Then convert standard deviation to variance (square it)
+            R_val = Math.pow(degrees * Math.PI / 180.0, 2);
+            // Display the standard deviation in degrees
+            noiseValueDisplay.textContent = `${degrees}°`;
+        });
+        measurementRateSlider.addEventListener('input', (e) => { measRate = parseInt(e.target.value); measurementRateValueDisplay.textContent = measRate; });
+        dtSlider.addEventListener('input', (e) => {
+            dt = parseFloat(e.target.value);
+            dtValueDisplay.textContent = dt.toFixed(2);
+            // Potentially reset or adjust simulation timing if dt changes significantly
+        });
+        qSlider.addEventListener('input', (e) => {
+            const degrees = parseFloat(e.target.value);
+            Q_val_theta = Math.pow(degrees * Math.PI / 180.0, 2);
+            Q_val_omega = Q_val_theta; // Assuming Q is isotropic for simplicity here
+            qValueDisplay.textContent = `${degrees}°`;
+        });
+        windSlider.addEventListener('input', (e) => { windEffect = parseFloat(e.target.value); windValueDisplay.textContent = windEffect.toFixed(2); });
+
+        resetButton.addEventListener('click', resetSimulation);
+        toggleMeasurementsButton.addEventListener('click', () => {
+            measurementsPaused = !measurementsPaused;
+            toggleMeasurementsButton.textContent = measurementsPaused ? 'Resume Measurements' : 'Pause Measurements';
+        });
+
+        // Physics Update (RK4 for true state)
+        function updateTrueState(state, tStep, wind) {
+            const { theta, omega } = state;
+
+            const f = (th, om) => {
+                // True dynamics: includes non-linearity, damping, and wind
+                return {
+                    dTheta: om,
+                    dOmega: (-g / L) * Math.sin(th) - defaultDamping * om + wind // Wind adds angular acceleration
+                };
+            };
+
+            const k1 = f(theta, omega);
+            const k2 = f(theta + 0.5 * tStep * k1.dTheta, omega + 0.5 * tStep * k1.dOmega);
+            const k3 = f(theta + 0.5 * tStep * k2.dTheta, omega + 0.5 * tStep * k2.dOmega);
+            const k4 = f(theta + tStep * k3.dTheta, omega + tStep * k3.dOmega);
+
+            state.theta += (tStep / 6) * (k1.dTheta + 2 * k2.dTheta + 2 * k3.dTheta + k4.dTheta);
+            state.omega += (tStep / 6) * (k1.dOmega + 2 * k2.dOmega + 2 * k3.dOmega + k4.dOmega);
+        }
+
+        // Kalman Filter Steps
+        function predictStep(state, P_prev, tStep) {
+            // System matrix (linearized model for Kalman)
+            // x_k = A * x_{k-1}
+            // A = [[1, dt], [-g/L * dt, 1 - damping*dt]] (linearized pendulum)
+            // Note: Kalman's model doesn't know about wind.
+            const A = [
+                [1, tStep],
+                [(-g / L) * tStep, 1 - defaultDamping * tStep]
+            ];
+
+            // Predicted state: x_pred = A * x_kalman
+            state.theta = A[0][0] * kalmanState.theta + A[0][1] * kalmanState.omega;
+            state.omega = A[1][0] * kalmanState.theta + A[1][1] * kalmanState.omega;
+
+            // Process noise covariance matrix Q
+            // Use the slider‑defined variances directly; let the user control the trust
+            const Q_matrix = [
+                [Q_val_theta, 0],
+                [0, Q_val_omega]
+            ];
+
+            // Predicted covariance: P_pred = A * P_prev * A_transpose + Q
+            // P_temp = A * P_prev
+            let P_temp = [
+                [A[0][0]*P_prev[0][0] + A[0][1]*P_prev[1][0], A[0][0]*P_prev[0][1] + A[0][1]*P_prev[1][1]],
+                [A[1][0]*P_prev[0][0] + A[1][1]*P_prev[1][0], A[1][0]*P_prev[0][1] + A[1][1]*P_prev[1][1]]
+            ];
+            // P_pred = P_temp * A_transpose + Q
+            P[0][0] = P_temp[0][0]*A[0][0] + P_temp[0][1]*A[0][1] + Q_matrix[0][0];
+            P[0][1] = P_temp[0][0]*A[1][0] + P_temp[0][1]*A[1][1] + Q_matrix[0][1];
+            P[1][0] = P_temp[1][0]*A[0][0] + P_temp[1][1]*A[0][1] + Q_matrix[1][0];
+            P[1][1] = P_temp[1][0]*A[1][0] + P_temp[1][1]*A[1][1] + Q_matrix[1][1];
+            P[1][0] = P[0][1];   // enforce symmetry
+        }
+
+        function josephUpdate(P, K, R) {
+            const KH00 = K[0];           // because H = [1 0]
+            const KH10 = K[1];
+            const I_KH = [
+                [1-KH00,   0        ],
+                [-KH10,    1        ]
+            ];
+
+            // M = (I-KH)*P
+            const M = [
+                [ I_KH[0][0]*P[0][0] + I_KH[0][1]*P[1][0],
+                    I_KH[0][0]*P[0][1] + I_KH[0][1]*P[1][1] ],
+                [ I_KH[1][0]*P[0][0] + I_KH[1][1]*P[1][0],
+                    I_KH[1][0]*P[0][1] + I_KH[1][1]*P[1][1] ]
+            ];
+            // P⁺ = M*(I-KH)ᵀ + K R Kᵀ
+            P[0][0] = M[0][0]*I_KH[0][0] + M[0][1]*I_KH[0][1] + K[0]*K[0]*R;
+            P[0][1] = M[0][0]*I_KH[1][0] + M[0][1]*I_KH[1][1] + K[0]*K[1]*R;
+            P[1][0] = M[1][0]*I_KH[0][0] + M[1][1]*I_KH[0][1] + K[1]*K[0]*R;
+            P[1][1] = M[1][0]*I_KH[1][0] + M[1][1]*I_KH[1][1] + K[1]*K[1]*R;
+        }
+
+        function updateStep(state, P_current, measurement_z) {
+            // Measurement matrix H (we only measure angle)
+            // z = H * x_true + v
+            // H = [[1, 0]]
+            const H = [[1, 0]];
+
+            // Innovation (measurement residual): y = z - H * x_pred
+            const y = measurement_z - (H[0][0] * state.theta + H[0][1] * state.omega);
+
+            // Innovation covariance: S = H * P_current * H_transpose + R
+            // S_temp = H * P_current
+            const S_temp_0 = H[0][0]*P_current[0][0] + H[0][1]*P_current[1][0]; // First element of (H * P)
+            const S_temp_1 = H[0][0]*P_current[0][1] + H[0][1]*P_current[1][1]; // Second element of (H*P)
+
+            // S = S_temp * H_transpose + R
+            const S = S_temp_0 * H[0][0] + S_temp_1 * H[0][1] + R_val; // H_transpose is [[1],[0]]
+
+            if (Math.abs(S) < 1e-9) { // Avoid division by zero if S is too small
+                console.warn("Innovation covariance S is near zero. Skipping update.");
+                return;
+            }
+
+            // Kalman gain: K = P_current * H_transpose * S_inverse
+            // K_numerator = P_current * H_transpose
+            const K_numerator = [
+                P_current[0][0]*H[0][0] + P_current[0][1]*H[0][1], // P_current[0][0]*1 + P_current[0][1]*0
+                P_current[1][0]*H[0][0] + P_current[1][1]*H[0][1]  // P_current[1][0]*1 + P_current[1][1]*0
+            ];
+            const K = [K_numerator[0] / S, K_numerator[1] / S];
+
+            // Updated state estimate: x_updated = x_pred + K * y
+            state.theta += K[0] * y;
+            state.omega += K[1] * y;
+
+            josephUpdate(P,K,R_val);
+        }
+
+        // Gaussian random number (Box-Muller transform)
+        function randn_bm() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+            while(v === 0) v = Math.random();
+            return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        }
+
+        // Drawing
+        function drawPendulum(angle, color, pivotX, pivotY, bobRadius, armLengthPixels) {
+            const bobX = pivotX + armLengthPixels * Math.sin(angle);
+            const bobY = pivotY + armLengthPixels * Math.cos(angle);
+
+            // Draw rod
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = '#414f63';  // Same color as kalman1
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw pivot point
+            ctx.beginPath();
+            ctx.arc(pivotX, pivotY, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#414f63';    // Same color as kalman1
+            ctx.fill();
+
+            // Draw bob
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);  // Larger radius (15 instead of 8-10)
+            ctx.fillStyle = color === 'red' ? '#f05454' : '#4b8bb9';  // Use theme colors
+            ctx.fill();
+            ctx.strokeStyle = color === 'red' ? '#e63946' : '#4b8bb9';  // Add stroke for true pendulum
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        function drawCovarianceEllipse(state, P_matrix, pivotX, pivotY, armLengthPixels) {
+            const angle = state.theta;
+            const omega = state.omega; // Not directly used for ellipse position, but for context
+
+            const bobX_center = pivotX + armLengthPixels * Math.sin(angle);
+            const bobY_center = pivotY + armLengthPixels * Math.cos(angle);
+
+            // Simplified: draw ellipse based on P[0][0] (angle variance) in angular space
+            // This is a conceptual representation. A true phase-space ellipse is more complex to draw on the pendulum.
+            // We'll represent uncertainty in angle as an arc.
+            const angle_std_dev = Math.sqrt(P_matrix[0][0]);
+            const arc_radius = armLengthPixels;
+
+            ctx.beginPath();
+            ctx.arc(pivotX, pivotY, arc_radius, Math.PI/2 - (angle + angle_std_dev), Math.PI/2 - (angle - angle_std_dev), angle_std_dev < 0);
+            ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
+            ctx.lineWidth = armLengthPixels * 0.1; // Make arc width proportional
+            ctx.stroke();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate pivot and arm length for drawing
+            const pivotX = canvas.width / 2;
+            const pivotY = canvas.height / 3;
+            const armLengthPixels = Math.min(canvas.width, canvas.height) * 0.4;
+
+
+
+            // Draw measurement points with fade-out effect
+            for (const pt of points) {
+                const alpha = 1 - pt.age / ptLife;
+                const x = pivotX + armLengthPixels * Math.sin(pt.theta);
+                const y = pivotY + armLengthPixels * Math.cos(pt.theta);
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = `rgba(75,139,185,${alpha.toFixed(3)})`;
+                ctx.fill();
+            }
+
+            // Draw true pendulum (red)
+            drawPendulum(trueState.theta, 'red', pivotX, pivotY, 15, armLengthPixels);
+
+            // Draw Kalman estimate pendulum (blue)
+            drawPendulum(kalmanState.theta, 'blue', pivotX, pivotY, 15, armLengthPixels);
+
+            // Draw covariance ellipse
+            //drawCovarianceEllipse(kalmanState, P, pivotX, pivotY, armLengthPixels);
+        }
+        // --- Main Simulation Loop ---
+        let lastFrameTime = performance.now();
+        function gameLoop(currentTime) {
+            const deltaTime = (currentTime - lastFrameTime) / 1000;
+            lastFrameTime = currentTime;
+
+            // Accumulate simulation time based on real frame time, but step physics by fixed 'dt'
+            // This is a simple way to decouple rendering rate from physics rate.
+            // More robust would be a fixed timestep loop with interpolation.
+
+            simTime += dt; // Increment by the chosen simulation dt
+
+            // 1. Update True State
+            updateTrueState(trueState, dt, windEffect);
+
+            // 2. Kalman Predict Step (happens every simulation step)
+            predictStep(kalmanState, P, dt);
+
+            // 3. Kalman Update Step (happens if a measurement is due)
+            if (!measurementsPaused && (simTime - lastMeasurementTime >= 1.0 / measRate)) {
+                lastMeasurementTime = simTime;
+                // Generate noisy measurement from true state
+                const measurement = trueState.theta + randn_bm() * Math.sqrt(R_val);
+                points.push({ theta: measurement, age: 0 });
+                updateStep(kalmanState, P, measurement);
+            }
+            for (let i = points.length - 1; i >= 0; i--) {
+                points[i].age += dt;
+                if (points[i].age > ptLife) {
+                    points.splice(i, 1);
+                }
+            }
+
+            // Calculate RMSE (simple version, could be over a window)
+            const angleErr = kalmanState.theta - trueState.theta;
+            const velErr = kalmanState.omega - trueState.omega;
+            angleErrorDisplay.textContent = Math.abs(angleErr).toFixed(3); // Instantaneous error for now
+            velocityErrorDisplay.textContent = Math.abs(velErr).toFixed(3);
+
+
+            // Update graphs
+            if(simTime % (Math.max(dt, 1.0/30)) < dt) { // Update graph at a reasonable rate
+                 updateGraphData();
+            }
+            draw()
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initial Setup
+        function resizeCanvas() {
+            // Resize pendulum canvas
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            // Resize chart canvases with proper dimensions
+            const angleCanvas = document.getElementById('angleGraph');
+            const velocityCanvas = document.getElementById('velocityGraph');
+
+            angleCanvas.width = angleCanvas.offsetWidth;
+            angleCanvas.height = angleCanvas.offsetHeight;
+            velocityCanvas.width = velocityCanvas.offsetWidth;
+            velocityCanvas.height = velocityCanvas.offsetHeight;
+
+            // Only reinitialize graphs if they exist
+            if (angleChart && velocityChart) {
+                angleChart.resize();
+                velocityChart.resize();
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Initialize
+        resizeCanvas();
+        resetSimulation(); // Also calls initGraphs
+        requestAnimationFrame(gameLoop);
+    });
+</script>
+</body>
+</html>
+
