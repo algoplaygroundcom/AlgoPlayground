@@ -195,7 +195,8 @@
             </div>
 
             <h3>Error Covariance Propagation</h3>
-            <p>In addition to predicting the state, the Kalman filter also predicts how uncertainty (error) propagates through the system. This is represented by the error covariance matrix P:</p>
+            <p>In addition to predicting the state, the Kalman filter also predicts how uncertainty (error) propagates through the system. This is represented by the error covariance matrix P.<br>
+            In order to lower our confidence in the dynamic model over time without new samples, we add a matrix Q - "Model Expected Error", that makes the covariance P to grow over time.</p>
             
             <div class="math-block">
                 \[
@@ -210,7 +211,7 @@
                 <li><strong>Q</strong> – model expected error</li>
             </ul>
             <div class="highlight">
-                <p><strong>Note:</strong> Pay close attention to the process noise Q — it lets the filter handle unmodeled or unexpected dynamics by reducing trust in the physical model. We will witness its effect Hands On in chapter 4.</p>
+                <p><strong>Note:</strong> Pay close attention to the model expected error Q — it lets the filter handle unmodeled or unexpected dynamics by reducing trust in the physical model. We will witness its effect Hands On in chapter 4.</p>
             </div>
             
             <p>The error covariance matrix P represents our uncertainty about the state estimate. For our 2D state vector, P is a 2×2 matrix:</p>
