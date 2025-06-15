@@ -21,8 +21,8 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #1a1d24;
-            color: #eee;
+            background-color: var(--background-color);
+            color: var(--text-color);
             line-height: 1.6;
         }
         header {
@@ -45,7 +45,7 @@
             text-decoration: none;
         }
         .visual-hero {
-            background: linear-gradient(var(--secondary-color), #000);
+            background-color: var(--secondary-color);
             color: white;
             text-align: center;
             padding: 4rem 0;
@@ -75,21 +75,10 @@
             padding: 4rem 0;
             text-align: center;
         }
-        .dark-block {
-            background: linear-gradient(var(--secondary-color), #000);
-            color: #f0f0f0;
-            text-align: center;
-            padding: 4rem 0;
-        }
-        .dark-block h1,
-        .dark-block h2,
-        .dark-block p {
-            color: #fff;
-        }
         .video-screen {
             margin: 2rem auto;
-            background-color: #000;
-            border: 1px solid #333;
+            background-color: var(--light-accent);
+            border: 1px solid #ccc;
             width: 100%;
             max-width: 600px;
             height: 338px;
@@ -128,18 +117,18 @@
         </div>
     </header>
 
-    <section class="visual-hero dark-block">
+    <section class="visual-hero">
         <div class="container">
             <h1>VisualPlayground</h1>
-            <p>Create math and science animations with the power of ChatGPT and Manim.</p>
+            <p>Create math and science animations powered by AI.</p>
             <a href="#generator" class="cta-button">Get Started</a>
         </div>
     </section>
 
-    <section class="generator dark-block" id="generator">
+    <section class="generator" id="generator">
         <div class="container">
             <h2>Create Your Animation</h2>
-            <p>Describe a concept and VisualPlayground will craft a Manim animation script.</p>
+            <p>Describe a concept and VisualPlayground will craft an animation script.</p>
             <textarea id="conceptInput" placeholder="e.g., Illustrate the Pythagorean theorem"></textarea>
             <br>
             <button id="generateButton" class="cta-button">Generate Animation</button>
