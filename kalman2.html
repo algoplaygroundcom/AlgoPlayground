@@ -309,23 +309,21 @@
   /* ---------- true state ---------- */
   let theta = 0.5, omega = 0;
 
-  /* ---------- UI state ---------- */
-  let noiseStd = parseFloat(noiseSlider.value) * Math.PI / 180; // measurement σ, now in radians
-  let measRate  = parseInt(measurementRateSlider.value);   // Hz
-  let ptLife    = parseFloat(pointLifetimeSlider.value);   // seconds
-  let paused = false;
-
-  /* ---------- references ---------- */
+  /* ---------- element references ---------- */
+  const noiseSliderEl = document.getElementById('noiseSlider');
+  const measRateSliderEl = document.getElementById('measurementRateSlider');
+  const ptLifeSliderEl = document.getElementById('pointLifetimeSlider');
+  const pauseBtn = document.getElementById('pauseButton');
+  const resetBtn = document.getElementById('resetButton');
+  const clearBtn = document.getElementById('clearPointsButton');
   const canvas = document.getElementById('pendulumCanvas');
   const ctx    = canvas.getContext('2d');
 
-  /* sliders / buttons / displays */
-  const noiseSliderEl = noiseSlider;
-  const measRateSliderEl = measurementRateSlider;
-  const ptLifeSliderEl = pointLifetimeSlider;
-  const pauseBtn = pauseButton;
-  const resetBtn = resetButton;
-  const clearBtn = clearPointsButton;
+  /* ---------- UI state ---------- */
+  let noiseStd = parseFloat(noiseSliderEl.value) * Math.PI / 180; // measurement σ, now in radians
+  let measRate  = parseInt(measRateSliderEl.value, 10);   // Hz
+  let ptLife    = parseFloat(ptLifeSliderEl.value);       // seconds
+  let paused = false;
 
   const noiseVal   = document.getElementById('noiseValue');
   const measRateVal = document.getElementById('measurementRateValue');
